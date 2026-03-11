@@ -1,0 +1,266 @@
+import { AdminProduct } from '@/types/AdminProduct'
+import ImageIllustration from '../../../../../public/image-ilustration'
+import { useEffect, useState } from 'react'
+import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure, Spinner } from '@heroui/react'
+import { Dimensions, getCroppedImg } from '@/utils/images/image-utils'
+import ReactCrop, { Crop, PixelCrop } from 'react-image-crop'
+import 'react-image-crop/dist/ReactCrop.css'
+import imageCompression from 'browser-image-compression'
+import { toast } from 'sonner'
+
+interface ProductImageFormProps {
+  productForm: AdminProduct
+  setProductForm: (productForm: AdminProduct) => void
+  isFormValid: boolean
+}
+
+export default function ProductImageForm({ productForm, setProductForm }: ProductImageFormProps) {
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [crop, setCrop] = useState<Crop>({
+    unit: '%',
+    width: 80,
+    height: 80,
+    x: 10,
+    y: 10
+  })
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null)
+  const [naturalDimensions, setNaturalDimensions] = useState<Dimensions | null>(null)
+  const [renderedDimensions, setRenderedDimensions] = useState<Dimensions | null>(null)
+  const [isCropping, setIsCropping] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [objectUrl, setObjectUrl] = useState<string | null>(null)
+
+  const { isOpen, onOpen, onOpenChange } = useDisclosure()
+
+  // Clean up object URL when component unmounts
+  useEffect(() => {
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl)
+      }
+    }
+  }, [objectUrl])
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setIsLoading(true)
+
+      // Increased file size limit to 10MB - more reasonable for smartphone photos
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('La imagen es demasiado grande. Por favor seleccione una imagen menor a 10MB.')
+        setIsLoading(false)
+        event.target.value = ''
+        return
+      }
+
+      const options = {
+        maxSizeMB: 0.8, // Increased from 0.2MB to 0.8MB for better quality
+        useWebWorker: true,
+        maxIteration: 10,
+        initialQuality: 0.9 // Increased from 0.8 to 0.9 for better quality
+      }
+
+      try {
+        // Quick preview before compression for better UX
+        const quickPreviewUrl = URL.createObjectURL(file)
+        setPreviewImage(quickPreviewUrl)
+
+        const compressedFile = await imageCompression(file, options)
+
+        // Use object URL instead of base64 for better memory management
+        if (objectUrl) {
+          URL.revokeObjectURL(objectUrl)
+        }
+
+        const newObjectUrl = URL.createObjectURL(compressedFile)
+        setObjectUrl(newObjectUrl)
+        setPreviewImage(newObjectUrl)
+        setIsLoading(false)
+        onOpen()
+        setIsCropping(true)
+      } catch (error) {
+        console.log(error)
+        toast.error('Error al procesar la imagen. Intente con una imagen más pequeña.')
+        setIsLoading(false)
+      }
+    }
+    event.target.value = '' // clear the selected file
+  }
+
+  // Center crop function
+  const centerCrop = (mediaWidth: number, mediaHeight: number) => {
+    // For product images, we want a square crop (aspect ratio 1:1)
+    const aspect = 1
+
+    // Calculate the largest possible crop area with 1:1 aspect ratio
+    let cropWidth = mediaWidth
+    let cropHeight = cropWidth / aspect
+
+    if (cropHeight > mediaHeight) {
+      cropHeight = mediaHeight
+      cropWidth = cropHeight * aspect
+    }
+
+    // Center the crop
+    const x = (mediaWidth - cropWidth) / 2
+    const y = (mediaHeight - cropHeight) / 2
+
+    setCrop({
+      unit: '%',
+      width: (cropWidth / mediaWidth) * 100,
+      height: (cropHeight / mediaHeight) * 100,
+      x: (x / mediaWidth) * 100,
+      y: (y / mediaHeight) * 100
+    })
+  }
+
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const { naturalWidth, naturalHeight, width, height } = e.currentTarget
+
+    // Validate image dimensions
+    if (naturalWidth > 4000 || naturalHeight > 4000) {
+      toast.error('La imagen tiene dimensiones muy grandes. Por favor use una imagen más pequeña.')
+      setPreviewImage(null)
+      return
+    }
+
+    setNaturalDimensions({ width: naturalWidth, height: naturalHeight })
+    setRenderedDimensions({ width, height })
+
+    // Center the crop after setting dimensions
+    centerCrop(width, height)
+
+    // Set initial completedCrop with pixel values
+    const cropWidth = (width * crop.width) / 100
+    const cropHeight = (height * crop.height) / 100
+    const cropX = (width * crop.x) / 100
+    const cropY = (height * crop.y) / 100
+
+    setCompletedCrop({
+      unit: 'px',
+      width: cropWidth,
+      height: cropHeight,
+      x: cropX,
+      y: cropY
+    })
+  }
+
+  const handleComplete = (crop: PixelCrop) => {
+    setCompletedCrop(crop)
+  }
+
+  const handleAction = async (onClose: Function) => {
+    if (previewImage && completedCrop) {
+      try {
+        setIsLoading(true)
+        const croppedImageBase64 = await getCroppedImg(
+          previewImage,
+          completedCrop,
+          naturalDimensions,
+          renderedDimensions
+        )
+        setPreviewImage(croppedImageBase64)
+        setIsCropping(false)
+        const imageUrl = croppedImageBase64 ? croppedImageBase64.replace(/^data:image\/[a-z]+;base64,/, '') : ''
+        setProductForm({ ...productForm, imageUrl })
+        setIsLoading(false)
+        onClose()
+      } catch (error) {
+        console.error('Error cropping image:', error)
+        toast.error('Error al recortar la imagen')
+        setIsLoading(false)
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (!isOpen && isCropping) {
+      setPreviewImage(null)
+      setCrop({ unit: '%', width: 80, height: 80, x: 10, y: 10 })
+      setCompletedCrop(null)
+      if (!productForm.imageUrl) {
+        setProductForm({ ...productForm, imageUrl: '' })
+      }
+    }
+  }, [isOpen])
+
+  return (
+    <>
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} placement='center'>
+        <ModalContent className='max-w-xl'>
+          {onClose => (
+            <>
+              <ModalHeader className='flex flex-col gap-1'>Recortar imágen</ModalHeader>
+              <ModalBody>
+                {isLoading ? (
+                  <div className='flex justify-center items-center py-8'>
+                    <Spinner size='lg' />
+                    <p className='ml-2'>Procesando imagen...</p>
+                  </div>
+                ) : (
+                  previewImage && (
+                    <ReactCrop
+                      crop={crop}
+                      minWidth={100}
+                      minHeight={100}
+                      aspect={1}
+                      onChange={newCrop => setCrop(newCrop)}
+                      onComplete={handleComplete}
+                      className='mx-auto'
+                      style={{ maxWidth: '100%', maxHeight: '400px' }}
+                      ruleOfThirds={true}
+                    >
+                      <img
+                        src={previewImage}
+                        alt='Preview'
+                        onLoad={handleImageLoad}
+                        style={{ maxWidth: '100%', maxHeight: '400px' }}
+                        crossOrigin='anonymous'
+                      />
+                    </ReactCrop>
+                  )
+                )}
+              </ModalBody>
+              <ModalFooter>
+                <Button color='danger' variant='light' onPress={onClose} disabled={isLoading}>
+                  Cancelar
+                </Button>
+                <Button color='primary' onPress={() => handleAction(onClose)} disabled={isLoading || !completedCrop}>
+                  {isLoading ? <Spinner size='sm' /> : 'Recortar'}
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+      <div
+        className='flex flex-col items-center gap-3 justify-center mt-2'
+        onClick={() => !isLoading && document.getElementById('productImage')?.click()}
+      >
+        <div className='flex justify-center items-center w-32 h-32 border-2 border-dashed border-gray-400 rounded-lg'>
+          <input
+            type='file'
+            id='productImage'
+            onChange={handleFileChange}
+            style={{ display: 'none' }}
+            accept='image/png, image/jpeg, image/jpg, image/webp, image/gif, image/svg+xml, image/avif'
+          />
+          {isLoading ? (
+            <div className='flex flex-col items-center justify-center'>
+              <Spinner />
+              <p className='text-xs mt-1'>Cargando...</p>
+            </div>
+          ) : previewImage ? (
+            <img src={previewImage} loading='lazy' alt='Product' className='object-cover w-full h-full' />
+          ) : productForm.imageUrl ? (
+            <img src={productForm.imageUrl} loading='lazy' alt='Product' className='object-cover w-full h-full' />
+          ) : (
+            <ImageIllustration />
+          )}
+        </div>
+        <span className='text-sm text-gray-500'>Toca para agregar una imagen</span>
+      </div>
+    </>
+  )
+}

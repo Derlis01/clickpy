@@ -1,0 +1,28 @@
+export type { ProductOption, OptionValue, ProductAddon } from '@clickpy/shared'
+import type { ProductOption, ProductAddon } from '@clickpy/shared'
+
+export interface AdminProduct {
+  pk?: string
+  sk: string
+  imageUrl: string
+  productName: string
+  price: number
+  description: string
+  category: string
+  options?: ProductOption[]
+  addons?: ProductAddon[]
+  hasAddonLimits: boolean
+  isActive: boolean
+  isHidden: boolean
+  minAddons?: number
+  maxAddons?: number
+  selectedOptionId?: string
+}
+
+export interface AdminProductSummary {
+  productId: string
+  name: string
+  price: number
+  imageUrl: string
+  category: string
+}

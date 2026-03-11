@@ -1,0 +1,91 @@
+/* Estilos específicos para la demo de pago desde mesa */
+
+/* Safe area para dispositivos con notch */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Mejoras para el scroll en móvil */
+@media (max-width: 768px) {
+  body {
+    overscroll-behavior: contain;
+  }
+
+  /* Asegurar que el contenido no se oculte detrás de la barra inferior */
+  .content-with-bottom-bar {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Animaciones suaves para transiciones */
+.slide-up-enter {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+.slide-up-enter-active {
+  transform: translateY(0);
+  opacity: 1;
+  transition:
+    transform 0.3s ease-out,
+    opacity 0.3s ease-out;
+}
+
+/* Mejoras para el modal en móvil */
+.mobile-modal {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 16px 16px 0 0;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* Estilos para el progreso circular */
+.circular-progress {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Mejoras para los botones en móvil */
+@media (max-width: 640px) {
+  .mobile-button {
+    min-height: 48px;
+    font-size: 16px; /* Evita zoom en iOS */
+  }
+
+  .mobile-input {
+    font-size: 16px; /* Evita zoom en iOS */
+  }
+}
+
+/* Estilos para mejor contraste y accesibilidad */
+.high-contrast {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+/* Animación de pulso para el botón principal */
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+/* Mejoras para el scroll horizontal si es necesario */
+.horizontal-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.horizontal-scroll::-webkit-scrollbar {
+  display: none;
+}

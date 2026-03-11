@@ -1,0 +1,21 @@
+export const commerceCategories = [
+  { key: '1', value: 'Hoteleria y turismo' },
+  { key: '2', value: 'Restaurante' },
+  { key: '3', value: 'Prendas de vestir o moda' },
+  { key: '4', value: 'Calzados' },
+  { key: '5', value: 'Electrodomésticos' },
+  { key: '6', value: 'Tecnología' },
+  { key: '7', value: 'Muebles' },
+  { key: '8', value: 'Herramientas' },
+  { key: '9', value: 'Alimentos y bebidas' },
+  { key: '10', value: 'Farmacia' },
+  { key: '11', value: 'Automotriz' },
+  { key: '12', value: 'Belleza y cuidado personal' },
+  { key: '13', value: 'Deportes' },
+  { key: '14', value: 'Juguetería' },
+  { key: '15', value: 'Librería' },
+  { key: '16', value: 'Mascotas' },
+  { key: '17', value: 'Salud y bienestar' },
+  { key: '18', value: 'Servicios' },
+  { key: '19', value: 'Otros' }
+]
