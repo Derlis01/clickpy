@@ -1,3 +1,5 @@
+'use client'
+
 import { Radio, RadioGroup } from "@heroui/react"
 
 const OptionExplanation: React.FC = () => (

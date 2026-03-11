@@ -1,3 +1,5 @@
+'use client'
+
 import { Button, Textarea } from '@heroui/react'
 import { ChevronLeft } from 'react-feather'
 

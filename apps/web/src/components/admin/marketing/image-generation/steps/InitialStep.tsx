@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from '@heroui/react'
 import { Tag, Gift } from 'react-feather'
 

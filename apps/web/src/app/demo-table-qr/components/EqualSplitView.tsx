@@ -1,3 +1,5 @@
+'use client'
+
 import { Button, Card, CardBody } from '@heroui/react'
 
 interface SplitData {

@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from '@heroui/react'
 import { Download, Share2, ArrowLeft } from 'react-feather'
 import { useState } from 'react'

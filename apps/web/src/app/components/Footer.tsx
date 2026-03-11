@@ -1,3 +1,5 @@
+'use client'
+
 import { Divider, Link as HeroLink, Image } from '@heroui/react'
 import Logo from '../../../public/icon1.png'
 import { Instagram } from 'react-feather'

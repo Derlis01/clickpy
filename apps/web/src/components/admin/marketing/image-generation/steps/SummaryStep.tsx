@@ -1,3 +1,5 @@
+'use client'
+
 import { Button, Textarea, Card, Image, Chip } from '@heroui/react'
 import { ChevronLeft } from 'react-feather'
 import { AdminProduct } from '@/types/AdminProduct'

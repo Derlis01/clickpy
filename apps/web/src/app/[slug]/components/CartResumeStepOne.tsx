@@ -1,3 +1,5 @@
+'use client'
+
 import { Commerce, ProductCart } from '@/types/PublicCommerceDataResponse'
 import { thousandsSeparator } from '@/utils/price'
 import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from '@heroui/react'

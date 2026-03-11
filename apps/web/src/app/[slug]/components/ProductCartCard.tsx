@@ -1,3 +1,5 @@
+'use client'
+
 import { ProductCart } from '@/types/PublicCommerceDataResponse'
 import { thousandsSeparator } from '@/utils/price'
 import { Button, Card, CardBody } from '@heroui/react'

@@ -1,3 +1,5 @@
+'use client'
+
 import { Button, Card, CardBody } from '@heroui/react'
 import { CreditCard } from 'react-feather'
 import QRIcon from '../../../../public/qr-icon'

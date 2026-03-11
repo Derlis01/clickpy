@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect } from 'react'
 import { Modal, ModalContent, Drawer, DrawerContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react'
 import { Product } from '@/types/PublicCommerceDataResponse'

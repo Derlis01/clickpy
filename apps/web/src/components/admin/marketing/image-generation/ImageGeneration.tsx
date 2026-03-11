@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useCallback, useEffect, useRef } from 'react'
 import useProductStore from '@/store/productStore'
 import useCommerceStore from '@/store/commerceStore'

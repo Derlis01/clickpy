@@ -1,0 +1,2 @@
+- [pnpm HeroUI hoist requirement](feedback_pnpm_heroui_hoist.md) - pnpm monorepo needs hoist pattern and root node_modules path for HeroUI styles
+- [Frontend stack versions](project_frontend_stack.md) - Current versions after March 2026 migration (Next.js 16, TW4, HeroUI 2.8)

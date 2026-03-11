@@ -1,3 +1,5 @@
+'use client'
+
 import { Switch, Input, Divider } from "@heroui/react"
 import { useState, useEffect } from 'react'
 import { AdminProduct } from '@/types/AdminProduct'

@@ -1,3 +1,5 @@
+'use client'
+
 import { Button, Card, CardBody, Input } from '@heroui/react'
 import { useState } from 'react'
 import QRIcon from '../../../../public/qr-icon'

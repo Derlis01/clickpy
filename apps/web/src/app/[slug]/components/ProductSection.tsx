@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { Input } from '@heroui/react'
 import { Commerce, Product } from '@/types/PublicCommerceDataResponse'

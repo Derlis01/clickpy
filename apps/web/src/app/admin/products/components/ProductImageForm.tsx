@@ -1,3 +1,5 @@
+'use client'
+
 import { AdminProduct } from '@/types/AdminProduct'
 import ImageIllustration from '../../../../../public/image-ilustration'
 import { useEffect, useState } from 'react'

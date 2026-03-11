@@ -1,3 +1,5 @@
+'use client'
+
 import { Commerce, Product } from '@/types/PublicCommerceDataResponse'
 import ProductModal from './ProductModal'
 import { useDisclosure } from '@heroui/react'

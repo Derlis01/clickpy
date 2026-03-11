@@ -1,3 +1,5 @@
+'use client'
+
 import { Checkbox } from "@heroui/react"
 
 const OptionExplanation: React.FC = () => (

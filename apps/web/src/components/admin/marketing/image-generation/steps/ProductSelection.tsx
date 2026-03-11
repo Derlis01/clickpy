@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { Card, Image, Button, Checkbox } from '@heroui/react'
 import { ChevronLeft } from 'react-feather'

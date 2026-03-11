@@ -1,3 +1,5 @@
+'use client'
+
 import { Commerce } from '@/types/PublicCommerceDataResponse'
 import { Image } from '@heroui/react'
 

@@ -1,3 +1,5 @@
+'use client'
+
 import { Card, Chip } from '@heroui/react'
 import ClickpyLogo from '../../../public/icon1.png'
 

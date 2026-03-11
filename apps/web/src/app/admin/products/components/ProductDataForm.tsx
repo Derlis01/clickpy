@@ -1,3 +1,5 @@
+'use client'
+
 import { AdminProduct } from '@/types/AdminProduct'
 import { Input, Textarea } from "@heroui/react"
 

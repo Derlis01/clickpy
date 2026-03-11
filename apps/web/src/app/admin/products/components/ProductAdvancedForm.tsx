@@ -1,3 +1,5 @@
+'use client'
+
 import { AdminProduct, ProductAddon, ProductOption } from '@/types/AdminProduct'
 import { Accordion, AccordionItem, Button, Card, CardBody, Chip } from '@heroui/react'
 import { ChevronRight, Trash } from 'react-feather'

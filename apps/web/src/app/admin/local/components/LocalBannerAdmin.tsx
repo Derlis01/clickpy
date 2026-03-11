@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { Camera, Edit2 } from 'react-feather'
 import useCommerceStore from '@/store/commerceStore'

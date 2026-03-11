@@ -1,3 +1,5 @@
+'use client'
+
 import { Card, Progress } from '@heroui/react'
 import { Image as ImageIcon } from 'react-feather'
 

@@ -1,3 +1,5 @@
+'use client'
+
 import { Button, Modal, ModalContent, ModalHeader, ModalBody } from '@heroui/react'
 
 interface PaymentOptionsModalProps {

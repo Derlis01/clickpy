@@ -1,3 +1,5 @@
+'use client'
+
 import { Card, CardBody, Chip } from '@heroui/react'
 
 interface OrderItem {

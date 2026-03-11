@@ -12,14 +12,12 @@ const fetchCommerceData = async (slug: string) => {
 }
 
 type Props = {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 export async function generateMetadata({ params }: Props, parent: ResolvingMetadata): Promise<Metadata> {
-  // read route params
-  const slug = params.slug
+  const { slug } = await params
 
-  // fetch data
   const commerceData = await fetchCommerceData(slug)
 
   return {
@@ -45,9 +43,8 @@ export async function generateMetadata({ params }: Props, parent: ResolvingMetad
   }
 }
 
-export async function generateViewport({ params }: { params: { slug: string } }) {
-  // read route params
-  const slug = params.slug
+export async function generateViewport({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
 
   const commerceData = await fetchCommerceData(slug)
 
@@ -56,8 +53,9 @@ export async function generateViewport({ params }: { params: { slug: string } })
   }
 }
 
-export default async function CommerceClient({ params }: { params: { slug: string } }) {
-  const commerceResponse = await fetchCommerceData(params.slug)
+export default async function CommerceClient({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const commerceResponse = await fetchCommerceData(slug)
   const commerce = commerceResponse.commerceInfo
   return (
     <div className='relative'>

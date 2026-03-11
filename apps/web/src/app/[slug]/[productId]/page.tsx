@@ -11,9 +11,9 @@ const getProductById = async (commerceSlug: string, productId: string) => {
   }
 }
 
-export async function generateMetadata({ params }: { params: { slug: string; productId: string } }): Promise<Metadata> {
-  // fetch data
-  const product = await getProductById(params.slug, params.productId)
+export async function generateMetadata({ params }: { params: Promise<{ slug: string; productId: string }> }): Promise<Metadata> {
+  const { slug, productId } = await params
+  const product = await getProductById(slug, productId)
 
   return {
     title: product.productName,
@@ -24,12 +24,13 @@ export async function generateMetadata({ params }: { params: { slug: string; pro
   }
 }
 
-export default async function ProductPage({ params }: { params: { slug: string; productId: string } }) {
-  const product = await getProductById(params.slug, params.productId)
+export default async function ProductPage({ params }: { params: Promise<{ slug: string; productId: string }> }) {
+  const { slug, productId } = await params
+  const product = await getProductById(slug, productId)
 
   return (
     <>
-      <ProductModalClient product={product} commerceSlug={params.slug} />
+      <ProductModalClient product={product} commerceSlug={slug} />
     </>
   )
 }

@@ -1,3 +1,5 @@
+'use client'
+
 import { OptionValue } from '@/types/AdminProduct'
 import { Button, Input, Switch } from '@heroui/react'
 import { AnimatePresence, motion } from 'framer-motion'
