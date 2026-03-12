@@ -16,7 +16,6 @@ import { LoadingImageGeneration } from './steps/LoadingImageGeneration'
 import { SuccessStep } from './steps/SuccessStep'
 import { Button, Image } from '@heroui/react'
 import instance from '@/utils/axios'
-import { getJobStatus } from '@/services/commerceService'
 
 type Step =
   | 'start'
@@ -104,46 +103,9 @@ export const ImageGeneration = () => {
     }, 1000) // Actualizar cada segundo
   }, [])
 
-  // Función para consultar el estado del job
-  const checkJobStatus = useCallback(async () => {
-    if (!jobId) {
-      console.log('⚠️ No jobId available for status check')
-      return
-    }
-
-    console.log('🔍 Checking job status for jobId:', jobId)
-
-    try {
-      const response = await getJobStatus(jobId)
-      console.log('📡 Job status response:', response)
-
-      if (response.success) {
-        const { status, result, error: jobError } = response
-
-        if (status === 'done' && result?.imageUrl) {
-          // Job completado exitosamente
-          console.log('✅ Job completed successfully!')
-          setProgress(100)
-          setGeneratedImageUrl(result.imageUrl)
-          setCurrentStep('success')
-          cleanupTimers()
-        } else if (status === 'failed') {
-          // Job falló
-          console.log('❌ Job failed:', jobError)
-          setError(jobError || 'Error al generar la imagen')
-          const previousStep = selectedProducts.length > 0 ? 'summary' : 'general-promotion'
-          setCurrentStep(previousStep)
-          cleanupTimers()
-        } else {
-          console.log('⏳ Job still processing, status:', status)
-        }
-        // Si status === 'pending' o 'processing', continúa el polling
-      }
-    } catch (error: any) {
-      console.error('💥 Error checking job status:', error)
-      // No mostrar error inmediatamente, continuar polling por un tiempo
-    }
-  }, [jobId, cleanupTimers, selectedProducts.length])
+  // Función para consultar el estado del job (temporalmente deshabilitada)
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  const checkJobStatus = useCallback(async () => {}, [jobId, cleanupTimers, selectedProducts.length])
 
   // Actualizar la referencia cuando cambie la función
   useEffect(() => {

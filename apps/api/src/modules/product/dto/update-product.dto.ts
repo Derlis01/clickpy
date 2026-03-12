@@ -13,15 +13,19 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsString()
-  product_name?: string;
+  name?: string;
+
+  @IsOptional()
+  @IsNumber()
+  price?: number;
 
   @IsOptional()
   @IsString()
-  price?: string;
+  cover_image?: string;
 
   @IsOptional()
-  @IsString()
-  image_url?: string;
+  @IsArray()
+  images?: string[];
 
   @IsOptional()
   @IsString()
@@ -29,7 +33,7 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsString()
-  category?: string;
+  category_id?: string;
 
   @IsOptional()
   @IsArray()

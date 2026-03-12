@@ -17,14 +17,16 @@ export function useUserPlan() {
       } = await supabase.auth.getUser()
 
       if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('current_plan')
-          .eq('id', user.id)
-          .single()
+        const { data: membership } = await supabase
+          .from('organization_members')
+          .select('organizations(plan)')
+          .eq('profile_id', user.id)
+          .limit(1)
+          .maybeSingle()
 
-        if (profile?.current_plan) {
-          setCurrentPlan(profile.current_plan as PlanType)
+        const org = membership?.organizations as any
+        if (org?.plan) {
+          setCurrentPlan(org.plan as PlanType)
         } else {
           setCurrentPlan('free')
         }

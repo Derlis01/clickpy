@@ -17,14 +17,15 @@ export default function useAuth() {
         return
       }
 
-      // Check if user has a commerce set up
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('commerce_id')
-        .eq('id', user.id)
-        .single()
+      // Check if user belongs to an organization
+      const { data: membership } = await supabase
+        .from('organization_members')
+        .select('organization_id')
+        .eq('profile_id', user.id)
+        .limit(1)
+        .maybeSingle()
 
-      if (!profile?.commerce_id) {
+      if (!membership?.organization_id) {
         router.push('/welcome')
       }
     }

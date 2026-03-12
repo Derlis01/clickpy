@@ -26,17 +26,17 @@ export default function WelcomeWizard() {
   const [isValidPhoneNumber, setIsValidPhoneNumber] = useState(false)
 
   const [formData, setFormData] = useState({
-    commerceName: '',
-    commerceSlug: '',
-    commerceCategory: '',
-    commerceWhatsapp: ''
+    organizationName: '',
+    organizationSlug: '',
+    organizationCategory: '',
+    organizationWhatsapp: ''
   })
 
   const [errors, setErrors] = useState({
-    commerceName: '',
-    commerceSlug: '',
-    commerceCategory: '',
-    commerceWhatsapp: ''
+    organizationName: '',
+    organizationSlug: '',
+    organizationCategory: '',
+    organizationWhatsapp: ''
   })
 
   const totalSteps = 3
@@ -45,23 +45,23 @@ export default function WelcomeWizard() {
     const newErrors = { ...errors }
     let valid = true
 
-    if (formData.commerceName.length < 3) {
-      newErrors.commerceName = formData.commerceName.length === 0
+    if (formData.organizationName.length < 3) {
+      newErrors.organizationName = formData.organizationName.length === 0
         ? 'El nombre del comercio es requerido'
         : 'Ingrese un nombre válido (mínimo 3 caracteres)'
       valid = false
     } else {
-      newErrors.commerceName = ''
+      newErrors.organizationName = ''
     }
 
     const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
-    if (formData.commerceSlug.length < 3 || !slugRegex.test(formData.commerceSlug)) {
-      newErrors.commerceSlug = formData.commerceSlug.length === 0
+    if (formData.organizationSlug.length < 3 || !slugRegex.test(formData.organizationSlug)) {
+      newErrors.organizationSlug = formData.organizationSlug.length === 0
         ? 'La URL del comercio es requerida'
         : 'Solo letras minúsculas, números y guiones'
       valid = false
     } else {
-      newErrors.commerceSlug = ''
+      newErrors.organizationSlug = ''
     }
 
     setErrors(newErrors)
@@ -69,20 +69,20 @@ export default function WelcomeWizard() {
   }
 
   const validateStep2 = (): boolean => {
-    if (!formData.commerceCategory) {
-      setErrors(prev => ({ ...prev, commerceCategory: 'Seleccione una categoría' }))
+    if (!formData.organizationCategory) {
+      setErrors(prev => ({ ...prev, organizationCategory: 'Seleccione una categoría' }))
       return false
     }
-    setErrors(prev => ({ ...prev, commerceCategory: '' }))
+    setErrors(prev => ({ ...prev, organizationCategory: '' }))
     return true
   }
 
   const validateStep3 = (): boolean => {
-    if (!isValidPhoneNumber || !formData.commerceWhatsapp) {
-      setErrors(prev => ({ ...prev, commerceWhatsapp: 'Ingrese un número de WhatsApp válido' }))
+    if (!isValidPhoneNumber || !formData.organizationWhatsapp) {
+      setErrors(prev => ({ ...prev, organizationWhatsapp: 'Ingrese un número de WhatsApp válido' }))
       return false
     }
-    setErrors(prev => ({ ...prev, commerceWhatsapp: '' }))
+    setErrors(prev => ({ ...prev, organizationWhatsapp: '' }))
     return true
   }
 
@@ -104,21 +104,61 @@ export default function WelcomeWizard() {
     try {
       const supabase = createClient()
 
-      const formattedPhone = formData.commerceWhatsapp.replace(/\D/g, '')
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        toast.error('Sesión expirada. Iniciá sesión de nuevo.', { duration: 3000 })
+        return
+      }
 
-      // Save commerce data in user_metadata so the DB trigger can create the commerce
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          commerce_name: formData.commerceName,
-          commerce_slug: formData.commerceSlug,
-          commerce_category: formData.commerceCategory,
-          commerce_phone: formattedPhone
+      const formattedPhone = formData.organizationWhatsapp.replace(/\D/g, '')
+
+      // 1. Create organization
+      const { data: org, error: orgError } = await supabase
+        .from('organizations')
+        .insert({
+          name: formData.organizationName,
+          slug: formData.organizationSlug,
+          category: formData.organizationCategory,
+          phone: formattedPhone,
+        })
+        .select()
+        .single()
+
+      if (orgError) {
+        if (orgError.code === '23505') {
+          toast.error('Ese link ya está en uso. Elegí otro.', { duration: 3000 })
+        } else {
+          toast.error('Error al crear el comercio. Intente de nuevo.', { duration: 3000 })
         }
-      })
+        return
+      }
 
-      if (error) {
-        toast.error('Error al guardar los datos. Intente de nuevo.', { duration: 3000 })
-        setLoading(false)
+      // 2. Create organization member (owner)
+      const { error: memberError } = await supabase
+        .from('organization_members')
+        .insert({
+          organization_id: org.id,
+          profile_id: user.id,
+          role: 'owner',
+        })
+
+      if (memberError) {
+        toast.error('Error al configurar el acceso.', { duration: 3000 })
+        return
+      }
+
+      // 3. Create main branch
+      const { error: branchError } = await supabase
+        .from('branches')
+        .insert({
+          organization_id: org.id,
+          name: formData.organizationName,
+          phone: formattedPhone,
+          is_main: true,
+        })
+
+      if (branchError) {
+        toast.error('Error al crear la sucursal.', { duration: 3000 })
         return
       }
 
@@ -131,15 +171,15 @@ export default function WelcomeWizard() {
     }
   }
 
-  const handleCommerceNameChange = (value: string) => {
+  const handleNameChange = (value: string) => {
     const slug = generateSlug(value)
-    setFormData(prev => ({ ...prev, commerceName: value, commerceSlug: slug }))
-    if (errors.commerceName) setErrors(prev => ({ ...prev, commerceName: '' }))
+    setFormData(prev => ({ ...prev, organizationName: value, organizationSlug: slug }))
+    if (errors.organizationName) setErrors(prev => ({ ...prev, organizationName: '' }))
   }
 
   const handleSlugChange = (value: string) => {
-    setFormData(prev => ({ ...prev, commerceSlug: value }))
-    if (errors.commerceSlug) setErrors(prev => ({ ...prev, commerceSlug: '' }))
+    setFormData(prev => ({ ...prev, organizationSlug: value }))
+    if (errors.organizationSlug) setErrors(prev => ({ ...prev, organizationSlug: '' }))
   }
 
   return (
@@ -166,10 +206,10 @@ export default function WelcomeWizard() {
                 radius='sm'
                 variant='bordered'
                 size='md'
-                value={formData.commerceName}
-                onChange={e => handleCommerceNameChange(e.target.value)}
-                isInvalid={!!errors.commerceName}
-                errorMessage={errors.commerceName}
+                value={formData.organizationName}
+                onChange={e => handleNameChange(e.target.value)}
+                isInvalid={!!errors.organizationName}
+                errorMessage={errors.organizationName}
               />
             </div>
 
@@ -181,15 +221,15 @@ export default function WelcomeWizard() {
                 radius='sm'
                 variant='bordered'
                 size='md'
-                value={formData.commerceSlug}
+                value={formData.organizationSlug}
                 startContent={
                   <div className='pointer-events-none flex items-center'>
                     <span className='text-default-400 text-small'>clickpy.app/</span>
                   </div>
                 }
                 onChange={e => handleSlugChange(e.target.value)}
-                isInvalid={!!errors.commerceSlug}
-                errorMessage={errors.commerceSlug}
+                isInvalid={!!errors.organizationSlug}
+                errorMessage={errors.organizationSlug}
               />
             </div>
           </div>
@@ -201,14 +241,14 @@ export default function WelcomeWizard() {
               <span className='text-sm'>Rubro del comercio</span>
               <ReusableDropdown
                 options={commerceCategories}
-                defaultOption={formData.commerceCategory}
+                defaultOption={formData.organizationCategory}
                 setSelectedKeys={(value: string) => {
-                  setFormData(prev => ({ ...prev, commerceCategory: value }))
-                  if (errors.commerceCategory) setErrors(prev => ({ ...prev, commerceCategory: '' }))
+                  setFormData(prev => ({ ...prev, organizationCategory: value }))
+                  if (errors.organizationCategory) setErrors(prev => ({ ...prev, organizationCategory: '' }))
                 }}
               />
-              {errors.commerceCategory && (
-                <span className='text-xs text-red-500'>{errors.commerceCategory}</span>
+              {errors.organizationCategory && (
+                <span className='text-xs text-red-500'>{errors.organizationCategory}</span>
               )}
             </div>
           </div>
@@ -220,13 +260,13 @@ export default function WelcomeWizard() {
               <span className='text-sm'>WhatsApp donde se recibirán los pedidos</span>
               <PhoneNumberInput
                 onPhoneNumberChange={(value: string) => {
-                  setFormData(prev => ({ ...prev, commerceWhatsapp: value }))
-                  if (errors.commerceWhatsapp) setErrors(prev => ({ ...prev, commerceWhatsapp: '' }))
+                  setFormData(prev => ({ ...prev, organizationWhatsapp: value }))
+                  if (errors.organizationWhatsapp) setErrors(prev => ({ ...prev, organizationWhatsapp: '' }))
                 }}
                 setIsValidPhoneNumber={setIsValidPhoneNumber}
               />
-              {errors.commerceWhatsapp && (
-                <span className='text-xs text-red-500'>{errors.commerceWhatsapp}</span>
+              {errors.organizationWhatsapp && (
+                <span className='text-xs text-red-500'>{errors.organizationWhatsapp}</span>
               )}
             </div>
           </div>

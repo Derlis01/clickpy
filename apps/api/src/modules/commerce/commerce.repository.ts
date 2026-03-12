@@ -13,53 +13,36 @@ export class CommerceRepository {
     );
   }
 
-  async getCommerceById(commerceId: string) {
+  async getOrganizationById(organizationId: string) {
     const { data, error } = await this.supabase
-      .from('commerces')
+      .from('organizations')
       .select('*')
-      .eq('id', commerceId)
+      .eq('id', organizationId)
       .single();
 
     if (error) throw error;
     return data;
   }
 
-  async getCommerceBySlug(slug: string) {
+  async getOrganizationBySlug(slug: string) {
     const { data, error } = await this.supabase
-      .from('commerces')
+      .from('organizations')
       .select('*')
-      .eq('commerce_slug', slug)
+      .eq('slug', slug)
       .single();
 
     if (error) throw error;
     return data;
   }
 
-  async updateCommerce(commerceId: string, updateData: Record<string, any>) {
-    const { data, error } = await this.supabase
-      .from('commerces')
-      .update({ ...updateData, updated_at: new Date().toISOString() })
-      .eq('id', commerceId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  }
-
-  async updateCheckoutConfiguration(
-    commerceId: string,
-    paymentMethods: Record<string, any>,
-    shippingMethods: Record<string, any>,
+  async updateOrganization(
+    organizationId: string,
+    updateData: Record<string, any>,
   ) {
     const { data, error } = await this.supabase
-      .from('commerces')
-      .update({
-        payment_methods: paymentMethods,
-        shipping_methods: shippingMethods,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', commerceId)
+      .from('organizations')
+      .update(updateData)
+      .eq('id', organizationId)
       .select()
       .single();
 
@@ -67,14 +50,62 @@ export class CommerceRepository {
     return data;
   }
 
-  async getProductsCount(commerceId: string): Promise<number> {
+  async getBranchesByOrganization(organizationId: string) {
     const { data, error } = await this.supabase
-      .from('commerces')
-      .select('products_count')
-      .eq('id', commerceId)
+      .from('branches')
+      .select('*')
+      .eq('organization_id', organizationId)
+      .eq('is_deleted', false)
+      .order('is_main', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  }
+
+  async getBranchById(branchId: string) {
+    const { data, error } = await this.supabase
+      .from('branches')
+      .select('*')
+      .eq('id', branchId)
+      .eq('is_deleted', false)
       .single();
 
     if (error) throw error;
-    return data.products_count ?? 0;
+    return data;
+  }
+
+  async updateBranch(branchId: string, updateData: Record<string, any>) {
+    const { data, error } = await this.supabase
+      .from('branches')
+      .update(updateData)
+      .eq('id', branchId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async getProductsCountByOrganization(
+    organizationId: string,
+  ): Promise<number> {
+    const { data: branches } = await this.supabase
+      .from('branches')
+      .select('id')
+      .eq('organization_id', organizationId)
+      .eq('is_deleted', false);
+
+    if (!branches || branches.length === 0) return 0;
+
+    const branchIds = branches.map((b) => b.id);
+
+    const { count, error } = await this.supabase
+      .from('products')
+      .select('id', { count: 'exact', head: true })
+      .in('branch_id', branchIds)
+      .eq('is_deleted', false);
+
+    if (error) throw error;
+    return count ?? 0;
   }
 }

@@ -36,48 +36,60 @@ export class SupabaseAuthGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
 
-    // TODO: TESTING MODE - remove before production
+    const authHeader = request.headers.authorization;
+    if (!authHeader?.startsWith('Bearer ')) {
+      throw new UnauthorizedException(
+        'Missing or invalid authorization header',
+      );
+    }
+
+    const token = authHeader.substring(7);
+
+    const {
+      data: { user },
+      error,
+    } = await this.supabase.auth.getUser(token);
+
+    if (error || !user) {
+      throw new UnauthorizedException('Invalid or expired token');
+    }
+
+    // Get membership + organization plan
+    const { data: membership, error: memberError } = await this.supabase
+      .from('organization_members')
+      .select('organization_id, role, organizations(plan)')
+      .eq('profile_id', user.id)
+      .limit(1)
+      .single();
+
+    if (memberError || !membership) {
+      throw new UnauthorizedException('User has no organization');
+    }
+
+    const org = membership.organizations as any;
+
+    // Get main branch
+    const { data: branch, error: branchError } = await this.supabase
+      .from('branches')
+      .select('id')
+      .eq('organization_id', membership.organization_id)
+      .eq('is_main', true)
+      .eq('is_deleted', false)
+      .limit(1)
+      .single();
+
+    if (branchError || !branch) {
+      throw new UnauthorizedException('Organization has no active branch');
+    }
+
     request.user = {
-      id: 'test-user-id',
-      commerceId: '8730191e-ef09-4ecc-98b8-6f1a3ec5aa6d',
-      currentPlan: 'free',
+      id: user.id,
+      organizationId: membership.organization_id,
+      branchId: branch.id,
+      plan: org.plan,
+      role: membership.role,
     };
+
     return true;
-
-    // const authHeader = request.headers.authorization;
-
-    // if (!authHeader?.startsWith('Bearer ')) {
-    //   throw new UnauthorizedException('Missing or invalid authorization header');
-    // }
-
-    // const token = authHeader.substring(7);
-
-    // const {
-    //   data: { user },
-    //   error,
-    // } = await this.supabase.auth.getUser(token);
-
-    // if (error || !user) {
-    //   throw new UnauthorizedException('Invalid or expired token');
-    // }
-
-    // // Fetch profile to get commerce_id and current_plan
-    // const { data: profile, error: profileError } = await this.supabase
-    //   .from('profiles')
-    //   .select('commerce_id, current_plan')
-    //   .eq('id', user.id)
-    //   .single();
-
-    // if (profileError || !profile) {
-    //   throw new UnauthorizedException('User profile not found');
-    // }
-
-    // request.user = {
-    //   id: user.id,
-    //   commerceId: profile.commerce_id,
-    //   currentPlan: profile.current_plan,
-    // };
-
-    // return true;
   }
 }

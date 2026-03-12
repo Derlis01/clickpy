@@ -13,12 +13,12 @@ export class ProductRepository {
     );
   }
 
-  async getProductById(productId: string, commerceId: string) {
+  async getProductById(productId: string, branchId: string) {
     const { data, error } = await this.supabase
       .from('products')
       .select('*')
       .eq('id', productId)
-      .eq('commerce_id', commerceId)
+      .eq('branch_id', branchId)
       .eq('is_deleted', false)
       .single();
 
@@ -26,25 +26,27 @@ export class ProductRepository {
     return data;
   }
 
-  async getAllProducts(commerceId: string) {
+  async getAllProducts(branchId: string) {
     const { data, error } = await this.supabase
       .from('products')
-      .select('*')
-      .eq('commerce_id', commerceId)
-      .eq('is_deleted', false);
+      .select('*, product_categories(id, name, sort_order)')
+      .eq('branch_id', branchId)
+      .eq('is_deleted', false)
+      .order('sort_order', { ascending: true });
 
     if (error) throw error;
     return data;
   }
 
-  async getActiveProducts(commerceId: string) {
+  async getActiveProducts(branchId: string) {
     const { data, error } = await this.supabase
       .from('products')
-      .select('*')
-      .eq('commerce_id', commerceId)
+      .select('*, product_categories(id, name, sort_order)')
+      .eq('branch_id', branchId)
       .eq('is_deleted', false)
       .eq('is_active', true)
-      .eq('is_hidden', false);
+      .eq('is_hidden', false)
+      .order('sort_order', { ascending: true });
 
     if (error) throw error;
     return data;
@@ -64,7 +66,7 @@ export class ProductRepository {
   async updateProduct(productId: string, updateData: Record<string, any>) {
     const { data, error } = await this.supabase
       .from('products')
-      .update({ ...updateData, updated_at: new Date().toISOString() })
+      .update(updateData)
       .eq('id', productId)
       .select()
       .single();
@@ -73,15 +75,12 @@ export class ProductRepository {
     return data;
   }
 
-  async softDeleteProduct(productId: string, commerceId: string) {
+  async softDeleteProduct(productId: string, branchId: string) {
     const { data, error } = await this.supabase
       .from('products')
-      .update({
-        is_deleted: true,
-        updated_at: new Date().toISOString(),
-      })
+      .update({ is_deleted: true })
       .eq('id', productId)
-      .eq('commerce_id', commerceId)
+      .eq('branch_id', branchId)
       .select()
       .single();
 
@@ -90,62 +89,39 @@ export class ProductRepository {
   }
 
   async updateProductsVisibility(
-    commerceId: string,
+    branchId: string,
     productIds: string[],
     isHidden: boolean,
   ) {
     const { data, error } = await this.supabase
       .from('products')
-      .update({
-        is_hidden: isHidden,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('commerce_id', commerceId)
+      .update({ is_hidden: isHidden })
+      .eq('branch_id', branchId)
       .in('id', productIds);
 
     if (error) throw error;
     return data;
   }
 
-  async updateProductsCategory(
-    commerceId: string,
-    productIds: string[],
-    newCategory: string,
-  ) {
-    const { data, error } = await this.supabase
-      .from('products')
-      .update({
-        category: newCategory,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('commerce_id', commerceId)
-      .in('id', productIds)
-      .select();
-
-    if (error) throw error;
-    return data;
-  }
-
-  async getProductBySlugAndId(commerceSlug: string, productId: string) {
-    // First get the commerce by slug
-    const { data: commerce, error: commerceError } = await this.supabase
-      .from('commerces')
+  async getActiveProductsByOrgSlug(orgSlug: string) {
+    const { data: org, error: orgError } = await this.supabase
+      .from('organizations')
       .select('id')
-      .eq('commerce_slug', commerceSlug)
+      .eq('slug', orgSlug)
       .single();
 
-    if (commerceError) throw commerceError;
+    if (orgError) throw orgError;
 
-    // Then get the product
-    const { data, error } = await this.supabase
-      .from('products')
-      .select('*')
-      .eq('id', productId)
-      .eq('commerce_id', commerce.id)
+    const { data: branch, error: branchError } = await this.supabase
+      .from('branches')
+      .select('id')
+      .eq('organization_id', org.id)
+      .eq('is_main', true)
       .eq('is_deleted', false)
       .single();
 
-    if (error) throw error;
-    return data;
+    if (branchError) throw branchError;
+
+    return this.getActiveProducts(branch.id);
   }
 }

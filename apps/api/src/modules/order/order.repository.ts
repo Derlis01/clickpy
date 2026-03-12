@@ -13,6 +13,18 @@ export class OrderRepository {
     );
   }
 
+  async getOrganizationIdByBranch(branchId: string): Promise<string> {
+    const { data, error } = await this.supabase
+      .from('branches')
+      .select('organization_id')
+      .eq('id', branchId)
+      .eq('is_deleted', false)
+      .single();
+
+    if (error || !data) throw error ?? new Error('Branch not found');
+    return data.organization_id;
+  }
+
   async createOrder(orderData: Record<string, any>) {
     const { data, error } = await this.supabase
       .from('orders')

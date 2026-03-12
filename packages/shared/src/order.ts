@@ -1,30 +1,43 @@
-export interface OrderProduct {
+export interface OrderItem {
+  product_id: string
+  product_name: string
   price: number
-  imageUrl: string
-  sk: string
-  description: string
-  pk: string
-  category: string
-  productName: string
   quantity: number
-  total: number
-  unicCartId: number
+  selected_options: any[]
+  selected_addons: any[]
+  notes?: string
+  subtotal: number
+}
+
+export interface DeliveryAddress {
+  street?: string
+  city?: string
+  notes?: string
+  lat?: number
+  lng?: number
 }
 
 export interface Order {
-  commercePk: string
-  customerPhone: string
-  customerName: string
-  customerEmail?: string
-  products: OrderProduct[]
-  orderTimestamp: number
+  id: string
+  branch_id: string
+  order_number: number
+  customer_id: string | null
+  customer_phone: string
+  customer_name: string
+  items: OrderItem[]
   subtotal: number
+  delivery_fee: number
   total: number
   currency: string
-  orderStatus: string
-  orderType: string
-  paymentMethod: string
-  orderDate: string
-  createdAt: string
-  updatedAt: string
+  status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
+  type: 'delivery' | 'pickup' | 'dinein'
+  payment_method: string
+  payment_status: 'pending' | 'paid'
+  notes: string
+  cancellation_reason?: string
+  delivery_address?: DeliveryAddress
+  table_number?: string
+  estimated_time?: number
+  created_at: string
+  updated_at: string
 }

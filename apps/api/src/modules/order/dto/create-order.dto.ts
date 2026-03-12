@@ -3,11 +3,12 @@ import {
   IsNumber,
   IsArray,
   IsOptional,
+  IsObject,
 } from 'class-validator';
 
 export class CreateOrderDto {
   @IsString()
-  commerce_id: string;
+  branch_id: string;
 
   @IsString()
   customer_phone: string;
@@ -20,26 +21,40 @@ export class CreateOrderDto {
   customer_email?: string;
 
   @IsArray()
-  products: any[];
-
-  @IsNumber()
-  order_timestamp: number;
+  items: any[];
 
   @IsNumber()
   subtotal: number;
+
+  @IsOptional()
+  @IsNumber()
+  delivery_fee?: number;
 
   @IsNumber()
   total: number;
 
   @IsString()
-  currency: string;
+  status: string;
 
   @IsString()
-  order_status: string;
-
-  @IsString()
-  order_type: string;
+  type: string;
 
   @IsString()
   payment_method: string;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
+
+  @IsOptional()
+  @IsObject()
+  delivery_address?: Record<string, any>;
+
+  @IsOptional()
+  @IsString()
+  table_number?: string;
+
+  @IsOptional()
+  @IsNumber()
+  estimated_time?: number;
 }

@@ -3,8 +3,10 @@ import type { PlanName } from '../config/plans.config';
 
 export class AuthenticatedUser {
   id: string;
-  commerceId: string;
-  currentPlan: PlanName;
+  organizationId: string;
+  branchId: string;
+  plan: PlanName;
+  role: 'owner' | 'admin' | 'staff';
 }
 
 export interface AuthenticatedRequest extends Request {

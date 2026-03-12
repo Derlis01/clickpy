@@ -21,14 +21,15 @@ export default function Welcome() {
         return
       }
 
-      // If user already has a commerce, skip the wizard
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('commerce_id')
-        .eq('id', user.id)
-        .single()
+      // If user already belongs to an organization, skip the wizard
+      const { data: membership } = await supabase
+        .from('organization_members')
+        .select('organization_id')
+        .eq('profile_id', user.id)
+        .limit(1)
+        .maybeSingle()
 
-      if (profile?.commerce_id) {
+      if (membership?.organization_id) {
         router.push('/admin')
         return
       }

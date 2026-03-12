@@ -9,7 +9,6 @@ import { UploadService } from '../upload/upload.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateVisibilityDto } from './dto/update-visibility.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
 import { PlanName, PLANS_LIMITATIONS } from '../../common/config/plans.config';
 
 @Injectable()
@@ -20,162 +19,139 @@ export class ProductService {
     private readonly uploadService: UploadService,
   ) {}
 
-  async getProductById(commerceId: string, productId: string) {
+  async getProductById(branchId: string, productId: string) {
     const product = await this.productRepository.getProductById(
       productId,
-      commerceId,
+      branchId,
     );
-
-    if (!product) {
-      throw new NotFoundException('Product not found');
-    }
-
+    if (!product) throw new NotFoundException('Product not found');
     return { success: true, message: 'Product found', product };
   }
 
-  async getAllProducts(commerceId: string) {
-    const products = await this.productRepository.getAllProducts(commerceId);
+  async getAllProducts(branchId: string) {
+    const products = await this.productRepository.getAllProducts(branchId);
     return { success: true, message: 'Products found', products };
   }
 
-  async getActiveProducts(commerceId: string) {
-    const products =
-      await this.productRepository.getActiveProducts(commerceId);
+  async getActiveProducts(branchId: string) {
+    const products = await this.productRepository.getActiveProducts(branchId);
     return { success: true, message: 'Active products found', products };
   }
 
   async createProduct(
-    commerceId: string,
+    organizationId: string,
+    branchId: string,
     currentPlan: PlanName,
     dto: CreateProductDto,
   ) {
-    // Check plan limits
     const productsCount =
-      await this.commerceService.getProductsCount(commerceId);
+      await this.commerceService.getProductsCount(organizationId);
     if (productsCount >= PLANS_LIMITATIONS[currentPlan].maxProducts) {
-      throw new BadRequestException('Products limit reached');
+      throw new BadRequestException('Products limit reached for your plan');
     }
 
-    // Validate addon limits
-    if (dto.has_addon_limits) {
-      if (
-        dto.min_addons &&
-        dto.max_addons &&
-        dto.min_addons > dto.max_addons
-      ) {
+    if (dto.has_addon_limits && dto.min_addons && dto.max_addons) {
+      if (dto.min_addons > dto.max_addons) {
         throw new BadRequestException(
-          'Minimum addons cannot be greater than maximum addons',
+          'min_addons cannot be greater than max_addons',
         );
       }
     }
 
-    // Handle image upload
-    let imageUrl = dto.image_url || '';
-    if (imageUrl && !imageUrl.startsWith('https')) {
-      const uploadedUrl = await this.uploadService.uploadImage(
-        imageUrl,
+    let coverImage = dto.cover_image || '';
+    if (coverImage && !coverImage.startsWith('https')) {
+      const uploaded = await this.uploadService.uploadImage(
+        coverImage,
         'product',
-        commerceId,
+        branchId,
       );
-      if (!uploadedUrl) {
-        throw new BadRequestException('Error uploading image');
-      }
-      imageUrl = uploadedUrl;
+      if (!uploaded) throw new BadRequestException('Error uploading image');
+      coverImage = uploaded;
     }
 
     const productData = {
-      commerce_id: commerceId,
-      product_name: dto.product_name,
+      branch_id: branchId,
+      name: dto.name,
       price: dto.price,
-      image_url: imageUrl,
+      cover_image: coverImage,
+      images: dto.images || [],
       description: dto.description || '',
-      category: dto.category || '',
+      category_id: dto.category_id || null,
       is_deleted: false,
       is_active: true,
       is_hidden: false,
       options: dto.options || [],
       addons: dto.addons || [],
       has_addon_limits: dto.has_addon_limits || false,
-      min_addons: dto.min_addons,
-      max_addons: dto.max_addons,
+      min_addons: dto.min_addons ?? null,
+      max_addons: dto.max_addons ?? null,
     };
 
     const product = await this.productRepository.createProduct(productData);
-
-    // products_count is handled by the PostgreSQL trigger
-
     return { success: true, message: 'Product created', product };
   }
 
   async duplicateProduct(
-    commerceId: string,
+    organizationId: string,
+    branchId: string,
     currentPlan: PlanName,
     dto: CreateProductDto,
   ) {
-    // Check plan limits
     const productsCount =
-      await this.commerceService.getProductsCount(commerceId);
+      await this.commerceService.getProductsCount(organizationId);
     if (productsCount >= PLANS_LIMITATIONS[currentPlan].maxProducts) {
-      throw new BadRequestException('Products limit reached');
+      throw new BadRequestException('Products limit reached for your plan');
     }
 
     const productData = {
-      commerce_id: commerceId,
-      product_name: dto.product_name,
+      branch_id: branchId,
+      name: dto.name,
       price: dto.price,
-      image_url: dto.image_url || '',
+      cover_image: dto.cover_image || '',
+      images: dto.images ? [...dto.images] : [],
       description: dto.description || '',
-      category: dto.category || '',
+      category_id: dto.category_id || null,
       is_deleted: false,
       is_active: true,
       is_hidden: false,
       options: dto.options ? [...dto.options] : [],
       addons: dto.addons ? [...dto.addons] : [],
       has_addon_limits: dto.has_addon_limits || false,
-      min_addons: dto.min_addons,
-      max_addons: dto.max_addons,
+      min_addons: dto.min_addons ?? null,
+      max_addons: dto.max_addons ?? null,
     };
 
     const product = await this.productRepository.createProduct(productData);
-
     return { success: true, message: 'Product duplicated', product };
   }
 
-  async updateProduct(commerceId: string, dto: UpdateProductDto) {
-    // Handle image upload
-    let imageUrl = dto.image_url;
-    if (imageUrl && !imageUrl.startsWith('https')) {
-      const uploadedUrl = await this.uploadService.uploadImage(
-        imageUrl,
+  async updateProduct(branchId: string, dto: UpdateProductDto) {
+    let coverImage = dto.cover_image;
+    if (coverImage && !coverImage.startsWith('https')) {
+      const uploaded = await this.uploadService.uploadImage(
+        coverImage,
         'product',
-        commerceId,
+        branchId,
       );
-      if (!uploadedUrl) {
-        throw new BadRequestException('Error uploading image');
-      }
-      imageUrl = uploadedUrl;
+      if (!uploaded) throw new BadRequestException('Error uploading image');
+      coverImage = uploaded;
     }
 
-    // Validate addon limits
-    if (dto.has_addon_limits) {
-      if (
-        dto.min_addons &&
-        dto.max_addons &&
-        dto.min_addons > dto.max_addons
-      ) {
+    if (dto.has_addon_limits && dto.min_addons && dto.max_addons) {
+      if (dto.min_addons > dto.max_addons) {
         throw new BadRequestException(
-          'Minimum addons cannot be greater than maximum addons',
+          'min_addons cannot be greater than max_addons',
         );
       }
     }
 
     const updateData: Record<string, any> = {};
-    if (dto.product_name !== undefined)
-      updateData.product_name = dto.product_name;
+    if (dto.name !== undefined) updateData.name = dto.name;
     if (dto.price !== undefined) updateData.price = dto.price;
-    if (imageUrl !== undefined) updateData.image_url = imageUrl;
+    if (coverImage !== undefined) updateData.cover_image = coverImage;
+    if (dto.images !== undefined) updateData.images = dto.images;
     if (dto.description !== undefined) updateData.description = dto.description;
-    if (dto.category !== undefined) updateData.category = dto.category;
+    if (dto.category_id !== undefined) updateData.category_id = dto.category_id;
     if (dto.options !== undefined) updateData.options = dto.options;
     if (dto.addons !== undefined) updateData.addons = dto.addons;
     if (dto.has_addon_limits !== undefined)
@@ -187,68 +163,30 @@ export class ProductService {
       dto.id,
       updateData,
     );
-
     return { success: true, message: 'Product updated', product };
   }
 
-  async deleteProduct(commerceId: string, productId: string) {
-    await this.productRepository.softDeleteProduct(productId, commerceId);
-
-    // products_count is handled by the PostgreSQL trigger
-
+  async deleteProduct(branchId: string, productId: string) {
+    await this.productRepository.softDeleteProduct(productId, branchId);
     return { success: true, message: 'Product deleted' };
   }
 
-  async updateProductsVisibility(
-    commerceId: string,
-    dto: UpdateVisibilityDto,
-  ) {
+  async updateProductsVisibility(branchId: string, dto: UpdateVisibilityDto) {
     if (!dto.product_ids || dto.product_ids.length === 0) {
       throw new BadRequestException('Product IDs are required');
     }
-
     await this.productRepository.updateProductsVisibility(
-      commerceId,
+      branchId,
       dto.product_ids,
       dto.is_hidden,
     );
-
     const action = dto.is_hidden ? 'hidden' : 'shown';
     return { success: true, message: `Products ${action} successfully` };
   }
 
-  async updateProductsCategory(commerceId: string, dto: UpdateCategoryDto) {
-    if (!dto.product_ids || dto.product_ids.length === 0) {
-      throw new BadRequestException('Product IDs are required');
-    }
-
-    if (!dto.new_category_name || dto.new_category_name.trim() === '') {
-      throw new BadRequestException('New category name is required');
-    }
-
-    const updated = await this.productRepository.updateProductsCategory(
-      commerceId,
-      dto.product_ids,
-      dto.new_category_name.trim(),
-    );
-
-    return {
-      success: true,
-      message: `Successfully updated ${updated?.length ?? 0} product(s) category to "${dto.new_category_name}"`,
-      updatedCount: updated?.length ?? 0,
-    };
-  }
-
-  async getProductBySlugAndId(commerceSlug: string, productId: string) {
-    const product = await this.productRepository.getProductBySlugAndId(
-      commerceSlug,
-      productId,
-    );
-
-    if (!product) {
-      throw new NotFoundException('Product not found');
-    }
-
-    return { success: true, message: 'Product found', product };
+  async getActiveProductsByOrgSlug(orgSlug: string) {
+    const products =
+      await this.productRepository.getActiveProductsByOrgSlug(orgSlug);
+    return { success: true, message: 'Active products found', products };
   }
 }

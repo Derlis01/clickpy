@@ -14,7 +14,6 @@ import { AuthenticatedUser } from '../../common/types/authenticated-request';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateVisibilityDto } from './dto/update-visibility.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Controller()
 export class ProductController {
@@ -22,81 +21,66 @@ export class ProductController {
 
   // ─── Auth required ───
 
-  @Post('product/addProduct')
+  @Post('product')
   async addProduct(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreateProductDto,
   ) {
     return this.productService.createProduct(
-      user.commerceId,
-      user.currentPlan,
+      user.organizationId,
+      user.branchId,
+      user.plan,
       dto,
     );
   }
 
-  @Get('product/getProducts')
+  @Get('product')
   async getProducts(@CurrentUser() user: AuthenticatedUser) {
-    return this.productService.getAllProducts(user.commerceId);
+    return this.productService.getAllProducts(user.branchId);
   }
 
-  @Delete('product/deleteProduct/:productId')
+  @Delete('product/:productId')
   async deleteProduct(
     @CurrentUser() user: AuthenticatedUser,
     @Param('productId') productId: string,
   ) {
-    return this.productService.deleteProduct(user.commerceId, productId);
+    return this.productService.deleteProduct(user.branchId, productId);
   }
 
-  @Post('product/duplicateProduct')
+  @Post('product/duplicate')
   async duplicateProduct(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreateProductDto,
   ) {
     return this.productService.duplicateProduct(
-      user.commerceId,
-      user.currentPlan,
+      user.organizationId,
+      user.branchId,
+      user.plan,
       dto,
     );
   }
 
-  @Put('product/updateProduct')
+  @Put('product')
   async updateProduct(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateProductDto,
   ) {
-    return this.productService.updateProduct(user.commerceId, dto);
+    return this.productService.updateProduct(user.branchId, dto);
   }
 
-  @Put('product/update-products-visibility')
+  @Put('product/visibility')
   async updateProductsVisibility(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateVisibilityDto,
   ) {
-    return this.productService.updateProductsVisibility(user.commerceId, dto);
-  }
-
-  @Put('product/update-products-category')
-  async updateProductsCategory(
-    @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: UpdateCategoryDto,
-  ) {
-    return this.productService.updateProductsCategory(user.commerceId, dto);
+    return this.productService.updateProductsVisibility(user.branchId, dto);
   }
 
   // ─── Public ───
 
   @Public()
-  @Get('public/product/commerce-products/:commerceId')
-  async getCommerceProducts(@Param('commerceId') commerceId: string) {
-    return this.productService.getActiveProducts(commerceId);
-  }
-
-  @Public()
-  @Get('public/product/:commerceSlug/:productId')
-  async getProductBySlugAndId(
-    @Param('commerceSlug') commerceSlug: string,
-    @Param('productId') productId: string,
-  ) {
-    return this.productService.getProductBySlugAndId(commerceSlug, productId);
+  @Get('public/product/:orgSlug')
+  async getActiveProducts(@Param('orgSlug') orgSlug: string) {
+    return this.productService.getActiveProductsByOrgSlug(orgSlug);
   }
 }

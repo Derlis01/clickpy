@@ -1,40 +1,66 @@
 import { AdminProduct } from '@/types/AdminProduct'
 import instance from '@/utils/axios'
 
-const products = [] as AdminProduct[]
-
 type ProductResponse = {
   success: boolean
   message: string
   products: AdminProduct[]
 }
 
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+// Maps backend DB record → AdminProduct (used by store/components)
+function toAdminProduct(p: any): AdminProduct {
+  return {
+    sk: p.id,
+    imageUrl: p.cover_image ?? '',
+    productName: p.name,
+    price: p.price,
+    description: p.description ?? '',
+    category: p.product_categories?.name ?? '',
+    options: p.options ?? [],
+    addons: p.addons ?? [],
+    hasAddonLimits: p.has_addon_limits ?? false,
+    isActive: p.is_active ?? true,
+    isHidden: p.is_hidden ?? false,
+    minAddons: p.min_addons ?? undefined,
+    maxAddons: p.max_addons ?? undefined,
+  }
+}
+
+// Maps AdminProduct → backend DTO fields
+function toApiProduct(p: AdminProduct): Record<string, any> {
+  return {
+    name: p.productName,
+    price: p.price,
+    cover_image: p.imageUrl ?? '',
+    description: p.description ?? '',
+    options: p.options ?? [],
+    addons: p.addons ?? [],
+    has_addon_limits: p.hasAddonLimits ?? false,
+    min_addons: p.minAddons ?? null,
+    max_addons: p.maxAddons ?? null,
+  }
+}
 
 const getProducts = async (): Promise<ProductResponse> => {
   try {
-    const response = await instance.get('/product/getProducts')
-
-    if (response.data.success === false) {
-      return { success: false, message: response.data.message, products: [] }
-    }
-
-    return { success: true, message: response.data.message, products: response.data.products as AdminProduct[] }
+    const response = await instance.get('/product')
+    const products = (response.data.products ?? []).map(toAdminProduct)
+    return { success: true, message: response.data.message, products }
   } catch (error: any) {
     console.log(error)
     return { success: false, message: error.message, products: [] }
   }
 }
 
-const getProduct = async (sk: string): Promise<AdminProduct> => {
-  await delay(50)
-  return products.find(product => product.sk === sk)!
+const getProduct = async (id: string): Promise<AdminProduct> => {
+  const response = await instance.get(`/product/${id}`)
+  return toAdminProduct(response.data.product)
 }
 
 const addProduct = async (product: AdminProduct): Promise<AdminProduct | undefined> => {
   try {
-    const response = await instance.post('/product/addProduct', product)
-    return response.data.product as AdminProduct
+    const response = await instance.post('/product', toApiProduct(product))
+    return toAdminProduct(response.data.product)
   } catch (error) {
     console.log(error)
   }
@@ -42,24 +68,18 @@ const addProduct = async (product: AdminProduct): Promise<AdminProduct | undefin
 
 const duplicateProduct = async (product: AdminProduct): Promise<AdminProduct | undefined> => {
   try {
-    const response = await instance.post('/product/duplicateProduct', product)
-    return response.data.product as AdminProduct
+    const response = await instance.post('/product/duplicate', toApiProduct(product))
+    return toAdminProduct(response.data.product)
   } catch (error) {
     console.log(error)
   }
 }
 
 const updateProduct = async (product: AdminProduct): Promise<AdminProduct | undefined> => {
-  const { pk, ...productWithoutPk } = product
   try {
-    const response = await instance.put(`/product/updateProduct`, productWithoutPk)
-
-    if (response.data.error) {
-      console.log(response.data.error)
-      return
-    }
-
-    return response.data.product as AdminProduct
+    const body = { id: product.sk, ...toApiProduct(product) }
+    const response = await instance.put('/product', body)
+    return toAdminProduct(response.data.product)
   } catch (error) {
     console.log(error)
   }
@@ -67,8 +87,7 @@ const updateProduct = async (product: AdminProduct): Promise<AdminProduct | unde
 
 const deleteProduct = async (sk: string): Promise<void> => {
   try {
-    const response = await instance.delete(`/product/deleteProduct/${sk}`)
-    return response.data
+    await instance.delete(`/product/${sk}`)
   } catch (error) {
     console.log(error)
   }
@@ -79,12 +98,11 @@ const updateProductsVisibility = async (
   isActive: boolean
 ): Promise<{ success: boolean; message: string }> => {
   try {
-    const response = await instance.put('/product/update-products-visibility', {
-      productIds,
-      isActive
+    const response = await instance.put('/product/visibility', {
+      product_ids: productIds,
+      is_hidden: !isActive,
     })
-
-    return { success: true, message: response.data.message || 'Visibilidad actualizada correctamente' }
+    return { success: true, message: response.data.message || 'Visibilidad actualizada' }
   } catch (error: any) {
     console.log(error)
     return { success: false, message: error.response?.data?.message || 'Error al actualizar visibilidad' }
@@ -96,50 +114,35 @@ const updateProductsHiddenStatus = async (
   isHidden: boolean
 ): Promise<{ success: boolean; message: string }> => {
   try {
-    const response = await instance.put('/product/update-products-visibility', {
-      productIds,
-      isHidden
+    const response = await instance.put('/product/visibility', {
+      product_ids: productIds,
+      is_hidden: isHidden,
     })
-
-    return { success: true, message: response.data.message || 'Estado de visibilidad actualizado correctamente' }
+    return { success: true, message: response.data.message || 'Estado de visibilidad actualizado' }
   } catch (error: any) {
     console.log(error)
-    return { success: false, message: error.response?.data?.message || 'Error al actualizar estado de visibilidad' }
+    return { success: false, message: error.response?.data?.message || 'Error al actualizar estado' }
   }
 }
 
-const updateCategoryName = async (
-  productSks: string[],
-  newCategoryName: string
-): Promise<{ success: boolean; message: string }> => {
+const getPublicProducts = async (orgSlug: string): Promise<ProductResponse> => {
   try {
-    const response = await instance.put('/product/update-products-category', {
-      productSks,
-      newCategoryName
-    })
-
-    return { success: true, message: response.data.message || 'Nombre de categoría actualizado correctamente' }
-  } catch (error: any) {
-    console.log(error)
-    return { success: false, message: error.response?.data?.message || 'Error al actualizar el nombre de la categoría' }
-  }
-}
-
-// PUBLIC
-
-const getPublicProducts = async (commercePk: string): Promise<ProductResponse> => {
-  try {
-    const response = await instance.get(`/public/product/commerce-products/${commercePk}`)
-
-    if (response.data.success === false) {
-      return { success: false, message: response.data.message, products: [] }
-    }
-
-    return { success: true, message: response.data.message, products: response.data.products as AdminProduct[] }
+    const response = await instance.get(`/public/product/${orgSlug}`)
+    const products = (response.data.products ?? []).map(toAdminProduct)
+    return { success: true, message: response.data.message, products }
   } catch (error: any) {
     console.log(error)
     return { success: false, message: error.message, products: [] }
   }
+}
+
+// Category management not yet implemented in v2 API
+const updateCategoryName = async (
+  _productSks: string[],
+  _newCategoryName: string
+): Promise<{ success: boolean; message: string }> => {
+  console.warn('updateCategoryName: not yet implemented in v2 API')
+  return { success: false, message: 'Not implemented' }
 }
 
 const productService = {
@@ -151,8 +154,8 @@ const productService = {
   deleteProduct,
   updateProductsVisibility,
   updateProductsHiddenStatus,
+  updateCategoryName,
   getPublicProducts,
-  updateCategoryName
 }
 
 export default productService

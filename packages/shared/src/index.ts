@@ -1,5 +1,5 @@
-export type { Schedule, Hour, PaymentMethods, ShippingMethods, CheckoutConfiguration } from './commerce.js'
-export type { ProductOption, OptionValue, ProductAddon } from './product.js'
-export type { OrderProduct, Order } from './order.js'
+export type { Schedule, ScheduleHour, PaymentMethodConfig, DeliveryMethodConfig, PaymentMethods, ShippingMethods, Organization, Branch } from './commerce.js'
+export type { ProductOption, OptionValue, ProductAddon, ProductCategory, Product } from './product.js'
+export type { OrderItem, DeliveryAddress, Order } from './order.js'
 export type { Customer } from './customer.js'
 export type { ApiResponse } from './api.js'

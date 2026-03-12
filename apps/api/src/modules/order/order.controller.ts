@@ -8,7 +8,7 @@ export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Public()
-  @Post('public/post-customer-order')
+  @Post('public/order')
   async createOrder(@Body() dto: CreateOrderDto) {
     return this.orderService.createOrder(dto);
   }

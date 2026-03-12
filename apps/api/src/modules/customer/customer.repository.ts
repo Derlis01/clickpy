@@ -13,12 +13,12 @@ export class CustomerRepository {
     );
   }
 
-  async getCustomerByPhone(commerceId: string, phone: string) {
+  async getCustomerByPhone(organizationId: string, phone: string) {
     const { data, error } = await this.supabase
       .from('customers')
       .select('*')
-      .eq('commerce_id', commerceId)
-      .eq('customer_phone', phone)
+      .eq('organization_id', organizationId)
+      .eq('phone', phone)
       .maybeSingle();
 
     if (error) throw error;
@@ -37,15 +37,15 @@ export class CustomerRepository {
   }
 
   async updateCustomer(
-    commerceId: string,
+    organizationId: string,
     phone: string,
     updateData: Record<string, any>,
   ) {
     const { data, error } = await this.supabase
       .from('customers')
       .update(updateData)
-      .eq('commerce_id', commerceId)
-      .eq('customer_phone', phone)
+      .eq('organization_id', organizationId)
+      .eq('phone', phone)
       .select()
       .single();
 

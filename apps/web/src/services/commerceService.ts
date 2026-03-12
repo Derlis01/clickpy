@@ -1,117 +1,140 @@
 import instance from '@/utils/axios'
-import { CommerceInsightsResponse, CommerceModel } from '@/types/commerceModel'
-import { JobStatusResponse } from '@/types/JobStatus'
+
+// Cached main branch ID — set when getCommerce() is called, reused for updates
+let mainBranchId: string | null = null
+
+// Store field name → org column name
+const ORG_FIELD_MAP: Record<string, string> = {
+  commerceName: 'name',
+  commerceLogo: 'logo',
+  commerceBanner: 'banner',
+  commercePhone: 'phone',
+  commerceSlug: 'slug',
+  commercePrimaryColor: 'primary_color',
+}
+
+// Store field name → branch column name
+const BRANCH_FIELD_MAP: Record<string, string> = {
+  commerceSchedule: 'schedule',
+  askPaymentMethod: 'ask_payment_method',
+}
 
 export const getCommerce = async () => {
   try {
-    const response = await instance.get('/commerce/get-commerce-info')
-    return response.data
+    const [orgRes, branchRes] = await Promise.all([
+      instance.get('/organization'),
+      instance.get('/branch'),
+    ])
+
+    const org = orgRes.data.organization
+    const branches: any[] = branchRes.data.branches ?? []
+    const main = branches.find((b) => b.is_main) ?? branches[0]
+    mainBranchId = main?.id ?? null
+
+    const pm = main?.payment_methods ?? {}
+    const sm = main?.shipping_methods ?? {}
+
+    return {
+      commerceInfo: {
+        commerceName: org.name ?? '',
+        commerceLogo: org.logo ?? '',
+        commerceBanner: org.banner ?? '',
+        commercePhone: org.phone ?? '',
+        commerceSlug: org.slug ?? '',
+        commercePrimaryColor: org.primary_color ?? '',
+        commerceInstagram: '',
+        commerceFacebook: '',
+        commerceTiktok: '',
+        commerceSchedule: main?.schedule ?? [],
+        askPaymentMethod: main?.ask_payment_method ?? false,
+        paymentMethods: {
+          cash: pm.cash?.enabled ?? false,
+          qr: pm.qr?.enabled ?? false,
+          transfer: pm.transfer?.enabled ?? false,
+          paymentLink: pm.paymentLink?.enabled ?? false,
+        },
+        shippingMethods: {
+          pickup: sm.pickup?.enabled ?? false,
+          delivery: sm.delivery?.enabled ?? false,
+          dinein: sm.dinein?.enabled ?? false,
+        },
+      },
+    }
   } catch (error) {
     console.log(error)
   }
 }
 
-export const getCommerceInsights = async () => {
+export async function putCommerce(body: Record<string, any>) {
   try {
-    const response = await instance.get('/commerce/get-commerce-insights')
-    return response.data.insights as CommerceInsightsResponse[]
-  } catch (error) {
-    console.log(error)
-  }
-}
+    const orgData: Record<string, any> = {}
+    const branchData: Record<string, any> = {}
 
-export const generateInsights = async () => {
-  try {
-    const response = await instance.post('/commerce/generate-insights')
-    return response.data
-  } catch (error) {
-    console.log(error)
-    throw error
-  }
-}
+    for (const [key, value] of Object.entries(body)) {
+      if (ORG_FIELD_MAP[key]) orgData[ORG_FIELD_MAP[key]] = value
+      else if (BRANCH_FIELD_MAP[key]) branchData[BRANCH_FIELD_MAP[key]] = value
+    }
 
-export async function putCommerce(body: Partial<CommerceModel>) {
-  try {
-    const response = await instance.put('/commerce/put-commerce-info', body)
-    return response.data
+    let orgResponse: any = null
+    let branchResponse: any = null
+
+    if (Object.keys(orgData).length > 0) {
+      const res = await instance.put('/organization', orgData)
+      orgResponse = res.data.organization
+    }
+
+    if (Object.keys(branchData).length > 0 && mainBranchId) {
+      const res = await instance.put(`/branch/${mainBranchId}`, branchData)
+      branchResponse = res.data.branch
+    }
+
+    const commerceInfo: Record<string, any> = {}
+    if (orgResponse) {
+      commerceInfo.commerceName = orgResponse.name
+      commerceInfo.commerceLogo = orgResponse.logo
+      commerceInfo.commerceBanner = orgResponse.banner
+      commerceInfo.commercePhone = orgResponse.phone
+      commerceInfo.commerceSlug = orgResponse.slug
+      commerceInfo.commercePrimaryColor = orgResponse.primary_color
+    }
+    if (branchResponse) {
+      commerceInfo.commerceSchedule = branchResponse.schedule
+      commerceInfo.askPaymentMethod = branchResponse.ask_payment_method
+    }
+
+    return { success: true, commerceInfo }
   } catch (error) {
     console.log(error)
+    return { success: false, error: 'Error al guardar' }
   }
 }
 
 export async function updateCheckoutConfiguration(body: {
-  paymentMethods: {
-    cash: boolean
-    qr: boolean
-    transfer: boolean
-    paymentLink: boolean
-  }
-  shippingMethods: {
-    pickup: boolean
-    delivery: boolean
-    dinein: boolean
-  }
+  paymentMethods: { cash: boolean; qr: boolean; transfer: boolean; paymentLink: boolean }
+  shippingMethods: { pickup: boolean; delivery: boolean; dinein: boolean }
 }) {
   try {
-    const response = await instance.put('/commerce/update-checkout-configuration', body)
-    return response.data
-  } catch (error) {
-    console.log(error)
-    throw error
-  }
-}
+    if (!mainBranchId) throw new Error('Branch not loaded')
 
-export async function getJobStatus(jobId: string): Promise<JobStatusResponse> {
-  try {
-    const response = await instance.get(`/commerce/jobs/${jobId}`)
-    return response.data
-  } catch (error) {
-    console.log('Error getting job status:', error)
-    throw error
-  }
-}
-
-export async function pollJobStatus(jobId: string, intervalMs = 30000, maxAttempts = 20): Promise<JobStatusResponse> {
-  return new Promise((resolve, reject) => {
-    let attempts = 0
-
-    const poll = async () => {
-      attempts++
-
-      try {
-        const status = await getJobStatus(jobId)
-
-        if (status.status === 'done') {
-          resolve(status)
-          return
-        }
-
-        if (status.status === 'failed') {
-          reject(new Error(status.error || 'Job failed'))
-          return
-        }
-
-        if (attempts >= maxAttempts) {
-          reject(new Error('Polling timeout: job did not complete in time'))
-          return
-        }
-
-        // Solo continúa haciendo polling si el estado es 'pending', 'processing' o 'running'
-        if (status.status === 'pending' || status.status === 'processing' || status.status === 'running') {
-          setTimeout(poll, intervalMs)
-        } else {
-          reject(new Error(`Unknown job status: ${status.status}`))
-        }
-      } catch (error) {
-        if (attempts >= maxAttempts) {
-          reject(error)
-          return
-        }
-        // Reintenta en caso de error de red
-        setTimeout(poll, intervalMs)
-      }
+    const payment_methods = {
+      cash: { enabled: body.paymentMethods.cash },
+      qr: { enabled: body.paymentMethods.qr },
+      transfer: { enabled: body.paymentMethods.transfer },
+      paymentLink: { enabled: body.paymentMethods.paymentLink },
+    }
+    const shipping_methods = {
+      pickup: { enabled: body.shippingMethods.pickup },
+      delivery: { enabled: body.shippingMethods.delivery, fee: 0 },
+      dinein: { enabled: body.shippingMethods.dinein },
     }
 
-    poll()
-  })
+    const res = await instance.put(`/branch/${mainBranchId}`, {
+      payment_methods,
+      shipping_methods,
+    })
+    return { success: true, branch: res.data.branch }
+  } catch (error) {
+    console.log(error)
+    return { success: false, error: 'Error al actualizar' }
+  }
 }

@@ -216,6 +216,10 @@ const useCommerceStore = create<CommerceModelStore>()(
       fetchCommerce: async () => {
         set({ isLoading: true })
         const response = await getCommerce()
+        if (!response?.commerceInfo) {
+          set({ isLoading: false })
+          return
+        }
         const commerceInfo = response.commerceInfo
 
         set(prevState => ({

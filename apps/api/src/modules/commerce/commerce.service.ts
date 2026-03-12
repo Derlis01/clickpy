@@ -6,7 +6,7 @@ import {
 import { CommerceRepository } from './commerce.repository';
 import { UploadService } from '../upload/upload.service';
 import { UpdateCommerceDto } from './dto/update-commerce.dto';
-import { CheckoutConfigurationDto } from './dto/checkout-configuration.dto';
+import { UpdateBranchDto } from './dto/update-branch.dto';
 
 @Injectable()
 export class CommerceService {
@@ -15,110 +15,106 @@ export class CommerceService {
     private readonly uploadService: UploadService,
   ) {}
 
-  async getCommerceInfo(commerceId: string) {
-    const commerce = await this.commerceRepository.getCommerceById(commerceId);
-
-    if (!commerce) {
-      throw new NotFoundException('Commerce not found');
-    }
-
-    return { success: true, message: 'Commerce found', commerceInfo: commerce };
+  async getOrganizationInfo(organizationId: string) {
+    const org =
+      await this.commerceRepository.getOrganizationById(organizationId);
+    if (!org) throw new NotFoundException('Organization not found');
+    return { success: true, message: 'Organization found', organization: org };
   }
 
-  async getCommerceBySlug(slug: string) {
-    const commerce = await this.commerceRepository.getCommerceBySlug(slug);
-
-    if (!commerce) {
-      throw new NotFoundException('Commerce not found');
-    }
-
-    return { success: true, message: 'Commerce found', commerceInfo: commerce };
+  async getOrganizationBySlug(slug: string) {
+    const org = await this.commerceRepository.getOrganizationBySlug(slug);
+    if (!org) throw new NotFoundException('Organization not found');
+    return { success: true, message: 'Organization found', organization: org };
   }
 
-  async updateCommerce(commerceId: string, dto: UpdateCommerceDto) {
+  async updateOrganization(organizationId: string, dto: UpdateCommerceDto) {
     const updateData: Record<string, any> = {};
 
-    // Handle logo upload if it's base64
-    if (dto.commerce_logo && !dto.commerce_logo.startsWith('https')) {
-      const logoUrl = await this.uploadService.uploadImage(
-        dto.commerce_logo,
+    if (dto.logo && !dto.logo.startsWith('https')) {
+      const url = await this.uploadService.uploadImage(
+        dto.logo,
         'logo',
-        commerceId,
+        organizationId,
       );
-      if (logoUrl) {
-        updateData.commerce_logo = logoUrl;
-      }
-    } else if (dto.commerce_logo) {
-      updateData.commerce_logo = dto.commerce_logo;
+      if (url) updateData.logo = url;
+    } else if (dto.logo) {
+      updateData.logo = dto.logo;
     }
 
-    // Handle banner upload if it's base64
-    if (dto.commerce_banner && !dto.commerce_banner.startsWith('https')) {
-      const bannerUrl = await this.uploadService.uploadImage(
-        dto.commerce_banner,
+    if (dto.banner && !dto.banner.startsWith('https')) {
+      const url = await this.uploadService.uploadImage(
+        dto.banner,
         'banner',
-        commerceId,
+        organizationId,
       );
-      if (bannerUrl) {
-        updateData.commerce_banner = bannerUrl;
-      }
-    } else if (dto.commerce_banner) {
-      updateData.commerce_banner = dto.commerce_banner;
+      if (url) updateData.banner = url;
+    } else if (dto.banner) {
+      updateData.banner = dto.banner;
     }
 
-    // Copy remaining fields
-    if (dto.commerce_name !== undefined)
-      updateData.commerce_name = dto.commerce_name;
-    if (dto.commerce_slug !== undefined)
-      updateData.commerce_slug = dto.commerce_slug;
-    if (dto.commerce_phone !== undefined)
-      updateData.commerce_phone = dto.commerce_phone;
-    if (dto.commerce_address !== undefined)
-      updateData.commerce_address = dto.commerce_address;
-    if (dto.commerce_primary_color !== undefined)
-      updateData.commerce_primary_color = dto.commerce_primary_color;
-    if (dto.commerce_category !== undefined)
-      updateData.commerce_category = dto.commerce_category;
-    if (dto.ask_payment_method !== undefined)
-      updateData.ask_payment_method = dto.ask_payment_method;
-    if (dto.commerce_schedule !== undefined)
-      updateData.commerce_schedule = dto.commerce_schedule;
+    if (dto.name !== undefined) updateData.name = dto.name;
+    if (dto.slug !== undefined) updateData.slug = dto.slug;
+    if (dto.phone !== undefined) updateData.phone = dto.phone;
+    if (dto.primary_color !== undefined)
+      updateData.primary_color = dto.primary_color;
+    if (dto.category !== undefined) updateData.category = dto.category;
 
     if (Object.keys(updateData).length === 0) {
       throw new BadRequestException('No fields to update');
     }
 
-    const commerce = await this.commerceRepository.updateCommerce(
-      commerceId,
+    const org = await this.commerceRepository.updateOrganization(
+      organizationId,
       updateData,
     );
-
     return {
       success: true,
-      message: 'Commerce updated',
-      commerceInfo: commerce,
+      message: 'Organization updated',
+      organization: org,
     };
   }
 
-  async updateCheckoutConfiguration(
-    commerceId: string,
-    dto: CheckoutConfigurationDto,
-  ) {
-    const commerce =
-      await this.commerceRepository.updateCheckoutConfiguration(
-        commerceId,
-        dto.payment_methods,
-        dto.shipping_methods,
-      );
-
-    return {
-      success: true,
-      message: 'Checkout configuration updated successfully',
-      commerceInfo: commerce,
-    };
+  async getBranches(organizationId: string) {
+    const branches =
+      await this.commerceRepository.getBranchesByOrganization(organizationId);
+    return { success: true, message: 'Branches found', branches };
   }
 
-  async getProductsCount(commerceId: string): Promise<number> {
-    return this.commerceRepository.getProductsCount(commerceId);
+  async getBranch(branchId: string) {
+    const branch = await this.commerceRepository.getBranchById(branchId);
+    if (!branch) throw new NotFoundException('Branch not found');
+    return { success: true, message: 'Branch found', branch };
+  }
+
+  async updateBranch(branchId: string, dto: UpdateBranchDto) {
+    const updateData: Record<string, any> = {};
+
+    if (dto.name !== undefined) updateData.name = dto.name;
+    if (dto.address !== undefined) updateData.address = dto.address;
+    if (dto.phone !== undefined) updateData.phone = dto.phone;
+    if (dto.schedule !== undefined) updateData.schedule = dto.schedule;
+    if (dto.payment_methods !== undefined)
+      updateData.payment_methods = dto.payment_methods;
+    if (dto.shipping_methods !== undefined)
+      updateData.shipping_methods = dto.shipping_methods;
+    if (dto.ask_payment_method !== undefined)
+      updateData.ask_payment_method = dto.ask_payment_method;
+
+    if (Object.keys(updateData).length === 0) {
+      throw new BadRequestException('No fields to update');
+    }
+
+    const branch = await this.commerceRepository.updateBranch(
+      branchId,
+      updateData,
+    );
+    return { success: true, message: 'Branch updated', branch };
+  }
+
+  async getProductsCount(organizationId: string): Promise<number> {
+    return this.commerceRepository.getProductsCountByOrganization(
+      organizationId,
+    );
   }
 }

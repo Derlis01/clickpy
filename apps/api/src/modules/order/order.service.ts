@@ -11,60 +11,55 @@ export class OrderService {
   ) {}
 
   async createOrder(dto: CreateOrderDto) {
-    // Check if customer already exists
-    const existingCustomer = await this.customerRepository.getCustomerByPhone(
-      dto.commerce_id,
+    const organizationId = await this.orderRepository.getOrganizationIdByBranch(
+      dto.branch_id,
+    );
+
+    // Upsert customer
+    let customer = await this.customerRepository.getCustomerByPhone(
+      organizationId,
       dto.customer_phone,
     );
 
-    if (existingCustomer) {
-      // Update customer if name or email changed
+    if (customer) {
       if (
-        existingCustomer.customer_name !== dto.customer_name ||
-        existingCustomer.customer_email !== (dto.customer_email || '')
+        customer.name !== dto.customer_name ||
+        customer.email !== (dto.customer_email || '')
       ) {
-        await this.customerRepository.updateCustomer(
-          dto.commerce_id,
+        customer = await this.customerRepository.updateCustomer(
+          organizationId,
           dto.customer_phone,
-          {
-            customer_name: dto.customer_name,
-            customer_email: dto.customer_email || '',
-          },
+          { name: dto.customer_name, email: dto.customer_email || '' },
         );
       }
     } else {
-      // Create new customer
-      await this.customerRepository.createCustomer({
-        commerce_id: dto.commerce_id,
-        customer_phone: dto.customer_phone,
-        customer_name: dto.customer_name,
-        customer_email: dto.customer_email || '',
+      customer = await this.customerRepository.createCustomer({
+        organization_id: organizationId,
+        phone: dto.customer_phone,
+        name: dto.customer_name,
+        email: dto.customer_email || '',
       });
     }
 
-    // Create the order
     const orderData = {
-      commerce_id: dto.commerce_id,
+      branch_id: dto.branch_id,
+      customer_id: customer?.id ?? null,
       customer_phone: dto.customer_phone,
       customer_name: dto.customer_name,
-      customer_email: dto.customer_email || '',
-      products: dto.products,
+      items: dto.items,
       subtotal: dto.subtotal,
+      delivery_fee: dto.delivery_fee ?? 0,
       total: dto.total,
-      currency: dto.currency,
-      order_status: dto.order_status,
-      order_type: dto.order_type,
+      status: dto.status,
+      type: dto.type,
       payment_method: dto.payment_method,
-      order_timestamp: dto.order_timestamp,
-      order_date: new Date(dto.order_timestamp).toISOString(),
+      notes: dto.notes || '',
+      delivery_address: dto.delivery_address ?? null,
+      table_number: dto.table_number ?? null,
+      estimated_time: dto.estimated_time ?? null,
     };
 
     const order = await this.orderRepository.createOrder(orderData);
-
-    return {
-      success: true,
-      message: 'Order created successfully',
-      order,
-    };
+    return { success: true, message: 'Order created successfully', order };
   }
 }

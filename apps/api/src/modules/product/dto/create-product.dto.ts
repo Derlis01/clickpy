@@ -8,14 +8,18 @@ import {
 
 export class CreateProductDto {
   @IsString()
-  product_name: string;
+  name: string;
 
-  @IsString()
-  price: string;
+  @IsNumber()
+  price: number;
 
   @IsOptional()
   @IsString()
-  image_url?: string;
+  cover_image?: string;
+
+  @IsOptional()
+  @IsArray()
+  images?: string[];
 
   @IsOptional()
   @IsString()
@@ -23,7 +27,7 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsString()
-  category?: string;
+  category_id?: string;
 
   @IsOptional()
   @IsArray()

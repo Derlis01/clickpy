@@ -9,6 +9,10 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
+    if (error) {
+      console.error('[auth/callback] exchangeCodeForSession error:', error.message, error)
+    }
+
     if (!error) {
       // Check if user has a profile with a commerce already set up
       const {
@@ -16,13 +20,14 @@ export async function GET(request: Request) {
       } = await supabase.auth.getUser()
 
       if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('commerce_id')
-          .eq('id', user.id)
-          .single()
+        const { data: membership } = await supabase
+          .from('organization_members')
+          .select('organization_id')
+          .eq('profile_id', user.id)
+          .limit(1)
+          .maybeSingle()
 
-        if (profile?.commerce_id) {
+        if (membership?.organization_id) {
           return NextResponse.redirect(`${origin}/admin`)
         }
 

@@ -1,6 +1,8 @@
 # Sistema de Autenticacion - ClickPy
 
-Documentacion completa del flujo de autenticacion entre el frontend (Next.js + Supabase Auth) y el backend (NestJS + JWT).
+> ATENCION: Este skill fue escrito para el schema v1 (mono-comercio). El schema v2 cambia `commerces` por `organizations` y `profiles` ya no tiene `commerce_id`. Ver `.claude/skills/database/schema.md` para el modelo de datos actual. Las secciones de "Base de Datos" y "Onboarding" de este skill estan desactualizadas.
+
+Documentacion del flujo de autenticacion entre el frontend (Next.js + Supabase Auth) y el backend (NestJS + JWT).
 
 ## Flujo General
 
