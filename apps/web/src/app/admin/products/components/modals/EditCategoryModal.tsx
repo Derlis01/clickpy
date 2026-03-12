@@ -71,8 +71,8 @@ export default function EditCategoryModal({ isOpen, onOpenChange, categoryName, 
     setIsLoading(true)
 
     try {
-      const productSks = products.map(product => product.sk)
-      const success = await updateCategoryName(productSks, trimmedName)
+      const productIds = products.map(product => product.id)
+      const success = await updateCategoryName(productIds, trimmedName)
 
       if (success) {
         toast.success('Categoría actualizada')

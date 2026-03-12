@@ -18,7 +18,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, commerce }) => {
 
   const productCardHandler = () => {
     onOpen()
-    window.history.pushState(null, '', `/${commerce.commerceSlug}/${product.sk}`)
+    window.history.pushState(null, '', `/${commerce.commerceSlug}/${product.id}`)
   }
 
   const handleModalClose = () => {

@@ -196,7 +196,7 @@ export const ImageGeneration = () => {
         ? {
             type: 'product',
             selectedProducts: selectedProducts.map(p => ({
-              sk: p.sk,
+              id: p.id,
               name: p.productName,
               imageUrl: p.imageUrl,
               price: p.price

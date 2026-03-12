@@ -12,7 +12,7 @@ const CategoryComponent: React.FC<CategoryComponentProps> = ({ categoryName, pro
     <h3 className='mb-6 font-semibold text-xl'>{categoryName}</h3>
     <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'>
       {products.map(product => (
-        <ProductCard key={product.sk} product={product} commerce={commerce} />
+        <ProductCard key={product.id} product={product} commerce={commerce} />
       ))}
     </div>
   </div>

@@ -302,8 +302,8 @@ export default function CartResumeStepTwo({ onCloseCart }: { onCloseCart: () => 
   const whatsappButtonHandler = async () => {
     if (!deliveryType || !paymentMethod || !commerceCustomer) return
 
-    const currentCommercePk = usePublicCommerceStore.getState().commerce?.pk
-    const currentCommerceProducts = products?.filter(product => product.pk === currentCommercePk) || []
+    const currentCommerceOrganizationId = usePublicCommerceStore.getState().commerce?.organizationId
+    const currentCommerceProducts = products?.filter(product => product.organizationId === currentCommerceOrganizationId) || []
 
     if (currentCommerceProducts.length === 0) {
       onCloseCart()
@@ -317,7 +317,7 @@ export default function CartResumeStepTwo({ onCloseCart }: { onCloseCart: () => 
     const finalTotal = subtotal + deliveryCost
 
     const order: Order = {
-      commercePk: currentCommercePk || '',
+      commercePk: currentCommerceOrganizationId || '',
       customerPhone: commerceCustomer.customerPhone,
       customerName: commerceCustomer.customerName,
       customerEmail: commerceCustomer.customerEmail || '',

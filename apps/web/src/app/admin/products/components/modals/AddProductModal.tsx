@@ -42,7 +42,7 @@ const ProductModal: React.FC<AddProductModalProps> = ({ isOpen, onOpenChange, ed
   const [isLoading, setIsLoading] = useState(false)
   const hasSetPreselectedCategory = useRef(false)
   const [productForm, setProductForm] = useState({
-    sk: '',
+    id: '',
     imageUrl: '',
     productName: '',
     price: 0,
@@ -67,7 +67,7 @@ const ProductModal: React.FC<AddProductModalProps> = ({ isOpen, onOpenChange, ed
   useEffect(() => {
     if (!isOpen) {
       const emptyProduct = {
-        sk: '',
+        id: '',
         imageUrl: '',
         productName: '',
         price: 0,

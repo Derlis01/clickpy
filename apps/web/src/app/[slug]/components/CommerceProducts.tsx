@@ -25,7 +25,7 @@ export default function CommerceProducts({ commerceData }: HeaderAndLogoProps) {
   useEffect(() => {
     const fetchProducts = async () => {
       setCommerce(commerceData)
-      const commerceProducts = await getPublicProducts(commerceData.pk)
+      const commerceProducts = await getPublicProducts(commerceData.commerceSlug)
       setProducts(commerceProducts.products || [])
       const isLight = tinycolor(commerceData?.commercePrimaryColor).isLight()
 

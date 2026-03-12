@@ -2,8 +2,7 @@ export type { ProductOption, OptionValue, ProductAddon } from '@clickpy/shared'
 import type { ProductOption, ProductAddon } from '@clickpy/shared'
 
 export interface AdminProduct {
-  pk?: string
-  sk: string
+  id: string
   imageUrl: string
   productName: string
   price: number

@@ -90,7 +90,7 @@ export default function Home() {
 
     // Solo considerar productos activos
     const activeProducts = categoryProducts.filter(product => product.isActive)
-    const productIds = activeProducts.map(product => product.sk)
+    const productIds = activeProducts.map(product => product.id)
 
     if (productIds.length === 0) {
       toast.warning('No hay productos activos en esta categoría para ocultar/mostrar', { duration: 4000 })
@@ -177,12 +177,15 @@ export default function Home() {
                         onOpenChange={open => setOpenPopovers(prev => ({ ...prev, [category]: open }))}
                       >
                         <PopoverTrigger>
-                          <button
+                          <div
+                            role='button'
+                            tabIndex={0}
                             onClick={e => e.stopPropagation()}
-                            className='p-1.5 hover:bg-gray-100 rounded-full transition-colors'
+                            onKeyDown={e => e.key === 'Enter' && e.stopPropagation()}
+                            className='p-1.5 hover:bg-gray-100 rounded-full transition-colors cursor-pointer'
                           >
                             <MoreHorizontal size={18} className='text-gray-500 hover:text-gray-700' />
-                          </button>
+                          </div>
                         </PopoverTrigger>
                         <PopoverContent className='p-1 min-w-[200px]'>
                           <div className='flex flex-col gap-1'>
@@ -230,7 +233,7 @@ export default function Home() {
                 }
               >
                 {products.map(product => (
-                  <ProductCardAdmin key={product.sk} product={product} />
+                  <ProductCardAdmin key={product.id} product={product} />
                 ))}
 
                 {/* Botón para agregar producto en esta categoría */}

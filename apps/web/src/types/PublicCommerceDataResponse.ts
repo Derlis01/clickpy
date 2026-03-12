@@ -7,6 +7,8 @@ export interface CommerceResponse {
 }
 
 export interface Commerce {
+  id: string
+  organizationId: string
   commerceLogo: string
   commerceName: string
   commercePhone: string
@@ -16,10 +18,8 @@ export interface Commerce {
   commerceTiktok?: string
   commerceBanner: string
   commercePrimaryColor: string
-  sk: string
   askPaymentMethod: boolean
   commerceSchedule: CommerceSchedule[]
-  pk: string
   commerceSlug: string
   commerceCategory: string
   paymentMethods: {
@@ -48,11 +48,11 @@ export interface Hour {
 }
 
 export interface Product {
+  id: string
+  organizationId: string
   price: number
   imageUrl: string
-  sk: string
   description: string
-  pk: string
   category: string
   productName: string
   options?: ProductOption[]

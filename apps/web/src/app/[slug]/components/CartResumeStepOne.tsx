@@ -95,7 +95,7 @@ export default function CartResumeStepOne({
           </div>
           <div className='flex flex-col mt-6 gap-3'>
             {cartProducts && cartProducts.length >= 1 ? (
-              cartProducts.map((product, index) => <ProductCartCard key={product.sk + index} product={product} />)
+              cartProducts.map((product, index) => <ProductCartCard key={product.id + index} product={product} />)
             ) : (
               <div className='flex flex-col items-center pt-5 gap-4'>
                 <CartEmptyState />

@@ -27,8 +27,8 @@ export const ProductSelection = ({ selectedProducts, onProductsSelect, onBack, o
 
   const handleProductSelect = (product: AdminProduct) => {
     onProductsSelect(
-      selectedProducts.some(p => p.sk === product.sk)
-        ? selectedProducts.filter(p => p.sk !== product.sk)
+      selectedProducts.some(p => p.id === product.id)
+        ? selectedProducts.filter(p => p.id !== product.id)
         : selectedProducts.length < 3
           ? [...selectedProducts, product]
           : selectedProducts
@@ -54,12 +54,12 @@ export const ProductSelection = ({ selectedProducts, onProductsSelect, onBack, o
 
       <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-h-[400px] overflow-y-auto p-2'>
         {products.map(product => {
-          const isSelected = selectedProducts.some(p => p.sk === product.sk)
+          const isSelected = selectedProducts.some(p => p.id === product.id)
           const isDisabled = isMaxSelected && !isSelected
 
           return (
             <Card
-              key={product.sk}
+              key={product.id}
               isPressable={!isDisabled}
               isHoverable={!isDisabled}
               shadow='none'

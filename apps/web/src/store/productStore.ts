@@ -15,29 +15,29 @@ interface ProductStoreModel {
   addProduct: (product: AdminProduct) => Promise<void>
   updateProduct: (product: AdminProduct) => Promise<void>
   duplicateProduct: (product: AdminProduct) => Promise<void>
-  deleteProduct: (productSk: string) => Promise<void>
+  deleteProduct: (productId: string) => Promise<void>
   setActualProduct: (product: AdminProduct | null) => void
 
   // Acciones para opciones
-  addProductOption: (productSk: string, option: ProductOption) => Promise<void>
-  updateProductOption: (productSk: string, option: ProductOption) => Promise<void>
-  deleteProductOption: (productSk: string, optionId: string) => Promise<void>
+  addProductOption: (productId: string, option: ProductOption) => Promise<void>
+  updateProductOption: (productId: string, option: ProductOption) => Promise<void>
+  deleteProductOption: (productId: string, optionId: string) => Promise<void>
 
   // Acciones para addons
-  addProductAddon: (productSk: string, addon: ProductAddon) => Promise<void>
-  updateProductAddon: (productSk: string, addon: ProductAddon) => Promise<void>
-  deleteProductAddon: (productSk: string, addonId: string) => Promise<void>
+  addProductAddon: (productId: string, addon: ProductAddon) => Promise<void>
+  updateProductAddon: (productId: string, addon: ProductAddon) => Promise<void>
+  deleteProductAddon: (productId: string, addonId: string) => Promise<void>
 
   // Acciones para limites de addons
-  toggleAddonLimits: (productSk: string, enabled: boolean) => Promise<void>
-  updateAddonLimits: (productSk: string, min: number, max: number) => Promise<void>
+  toggleAddonLimits: (productId: string, enabled: boolean) => Promise<void>
+  updateAddonLimits: (productId: string, min: number, max: number) => Promise<void>
 
   // Acciones para visibilidad
   updateProductsVisibility: (productIds: string[], isActive: boolean) => Promise<boolean>
   updateProductsHiddenStatus: (productIds: string[], isHidden: boolean) => Promise<boolean>
 
   // Acciones para categorías
-  updateCategoryName: (productSks: string[], newCategoryName: string) => Promise<boolean>
+  updateCategoryName: (productIds: string[], newCategoryName: string) => Promise<boolean>
 
   // Otras acciones
   fetchProducts: () => Promise<void>
@@ -105,7 +105,7 @@ const useProductStore = create<ProductStoreModel>()(
 
         if (productUpdated) {
           set(currentState => {
-            const updatedProducts = currentState.products.map(p => (p.sk === product.sk ? productUpdated : p))
+            const updatedProducts = currentState.products.map(p => (p.id === product.id ? productUpdated : p))
             get().calculateCategories(updatedProducts)
             return { products: updatedProducts }
           })
@@ -118,11 +118,11 @@ const useProductStore = create<ProductStoreModel>()(
         set({ product })
       },
 
-      deleteProduct: async (productSk: string) => {
-        const response = await productService.deleteProduct(productSk)
+      deleteProduct: async (productId: string) => {
+        await productService.deleteProduct(productId)
 
         set(state => ({
-          products: state.products.filter(p => p.sk !== productSk)
+          products: state.products.filter(p => p.id !== productId)
         }))
       },
 
@@ -142,8 +142,8 @@ const useProductStore = create<ProductStoreModel>()(
         }
       },
 
-      addProductOption: async (productSk: string, option: ProductOption) => {
-        const currentProduct = get().products.find(p => p.sk === productSk)
+      addProductOption: async (productId: string, option: ProductOption) => {
+        const currentProduct = get().products.find(p => p.id === productId)
         if (!currentProduct) return
 
         const updatedProduct = {
@@ -154,8 +154,8 @@ const useProductStore = create<ProductStoreModel>()(
         await get().updateProduct(updatedProduct)
       },
 
-      updateProductOption: async (productSk: string, updatedOption: ProductOption) => {
-        const currentProduct = get().products.find(p => p.sk === productSk)
+      updateProductOption: async (productId: string, updatedOption: ProductOption) => {
+        const currentProduct = get().products.find(p => p.id === productId)
         if (!currentProduct) return
 
         const updatedProduct = {
@@ -168,8 +168,8 @@ const useProductStore = create<ProductStoreModel>()(
         await get().updateProduct(updatedProduct)
       },
 
-      deleteProductOption: async (productSk: string, optionId: string) => {
-        const currentProduct = get().products.find(p => p.sk === productSk)
+      deleteProductOption: async (productId: string, optionId: string) => {
+        const currentProduct = get().products.find(p => p.id === productId)
         if (!currentProduct) return
 
         const updatedProduct = {
@@ -180,8 +180,8 @@ const useProductStore = create<ProductStoreModel>()(
         await get().updateProduct(updatedProduct)
       },
 
-      addProductAddon: async (productSk: string, addon: ProductAddon) => {
-        const currentProduct = get().products.find(p => p.sk === productSk)
+      addProductAddon: async (productId: string, addon: ProductAddon) => {
+        const currentProduct = get().products.find(p => p.id === productId)
         if (!currentProduct) return
 
         const updatedProduct = {
@@ -192,8 +192,8 @@ const useProductStore = create<ProductStoreModel>()(
         await get().updateProduct(updatedProduct)
       },
 
-      updateProductAddon: async (productSk: string, updatedAddon: ProductAddon) => {
-        const currentProduct = get().products.find(p => p.sk === productSk)
+      updateProductAddon: async (productId: string, updatedAddon: ProductAddon) => {
+        const currentProduct = get().products.find(p => p.id === productId)
         if (!currentProduct) return
 
         const updatedProduct = {
@@ -204,8 +204,8 @@ const useProductStore = create<ProductStoreModel>()(
         await get().updateProduct(updatedProduct)
       },
 
-      deleteProductAddon: async (productSk: string, addonId: string) => {
-        const currentProduct = get().products.find(p => p.sk === productSk)
+      deleteProductAddon: async (productId: string, addonId: string) => {
+        const currentProduct = get().products.find(p => p.id === productId)
         if (!currentProduct) return
 
         const updatedProduct = {
@@ -216,14 +216,13 @@ const useProductStore = create<ProductStoreModel>()(
         await get().updateProduct(updatedProduct)
       },
 
-      toggleAddonLimits: async (productSk: string, enabled: boolean) => {
-        const currentProduct = get().products.find(p => p.sk === productSk)
+      toggleAddonLimits: async (productId: string, enabled: boolean) => {
+        const currentProduct = get().products.find(p => p.id === productId)
         if (!currentProduct) return
 
         const updatedProduct = {
           ...currentProduct,
           hasAddonLimits: enabled,
-          // Si se deshabilitan los límites, resetear min/max
           minAddons: enabled ? currentProduct.minAddons : undefined,
           maxAddons: enabled ? currentProduct.maxAddons : undefined
         }
@@ -231,8 +230,8 @@ const useProductStore = create<ProductStoreModel>()(
         await get().updateProduct(updatedProduct)
       },
 
-      updateAddonLimits: async (productSk: string, min: number, max: number) => {
-        const currentProduct = get().products.find(p => p.sk === productSk)
+      updateAddonLimits: async (productId: string, min: number, max: number) => {
+        const currentProduct = get().products.find(p => p.id === productId)
         if (!currentProduct) return
 
         const updatedProduct = {
@@ -249,10 +248,9 @@ const useProductStore = create<ProductStoreModel>()(
         const response = await productService.updateProductsVisibility(productIds, isActive)
 
         if (response.success) {
-          // Actualizar productos en el store
           set(state => ({
             products: state.products.map(product =>
-              productIds.includes(product.sk) ? { ...product, isActive } : product
+              productIds.includes(product.id) ? { ...product, isActive } : product
             )
           }))
           return true
@@ -264,10 +262,9 @@ const useProductStore = create<ProductStoreModel>()(
         const response = await productService.updateProductsHiddenStatus(productIds, isHidden)
 
         if (response.success) {
-          // Actualizar productos en el store
           set(state => ({
             products: state.products.map(product =>
-              productIds.includes(product.sk) ? { ...product, isHidden } : product
+              productIds.includes(product.id) ? { ...product, isHidden } : product
             )
           }))
           return true
@@ -275,14 +272,13 @@ const useProductStore = create<ProductStoreModel>()(
         return false
       },
 
-      updateCategoryName: async (productSks: string[], newCategoryName: string) => {
-        const response = await productService.updateCategoryName(productSks, newCategoryName)
+      updateCategoryName: async (productIds: string[], newCategoryName: string) => {
+        const response = await productService.updateCategoryName(productIds, newCategoryName)
 
         if (response.success) {
-          // Actualizar productos en el store
           set(state => ({
             products: state.products.map(product =>
-              productSks.includes(product.sk) ? { ...product, category: newCategoryName } : product
+              productIds.includes(product.id) ? { ...product, category: newCategoryName } : product
             )
           }))
           return true

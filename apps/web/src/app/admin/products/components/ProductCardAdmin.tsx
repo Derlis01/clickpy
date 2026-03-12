@@ -66,18 +66,18 @@ const ProductCardAdmin: React.FC<ProductCardAdminProps> = ({ product }) => {
     }
     setActualProduct(product)
     const params = new URLSearchParams(searchParams.toString())
-    params.set('editProduct', product.sk)
+    params.set('editProduct', product.id)
     router.push(`?${params.toString()}`, { scroll: false })
   }
 
   useEffect(() => {
     const editProductId = searchParams.get('editProduct')
-    if (editProductId === product.sk) {
+    if (editProductId === product.id) {
       onOpen()
     }
-  }, [searchParams, product.sk, onOpen])
+  }, [searchParams, product.id, onOpen])
 
-  const handleDeleteClick = async (event: React.MouseEvent, sk: string, imageUrl: string) => {
+  const handleDeleteClick = async (event: React.MouseEvent, id: string, imageUrl: string) => {
     if (!product.isActive) {
       event.stopPropagation()
       toast.error('Este producto está inactivo. Actualiza tu plan para eliminarlo.', {
@@ -87,7 +87,7 @@ const ProductCardAdmin: React.FC<ProductCardAdminProps> = ({ product }) => {
     }
     event.stopPropagation()
     setIsDeleting(true)
-    await deleteProductHandler(sk)
+    await deleteProductHandler(id)
     setIsDeleting(false)
     toast.info('Producto eliminado', {
       duration: 4000
@@ -120,7 +120,7 @@ const ProductCardAdmin: React.FC<ProductCardAdminProps> = ({ product }) => {
     event.stopPropagation()
     setIsUpdatingVisibility(true)
 
-    const success = await updateProductsHiddenStatus([product.sk], !product.isHidden)
+    const success = await updateProductsHiddenStatus([product.id], !product.isHidden)
 
     if (success) {
       toast.success(product.isHidden ? 'Producto mostrado en el catálogo' : 'Producto ocultado del catálogo', {
@@ -206,7 +206,7 @@ const ProductCardAdmin: React.FC<ProductCardAdminProps> = ({ product }) => {
                   </button>
 
                   <button
-                    onClick={event => handleDeleteClick(event, product.sk, product.imageUrl)}
+                    onClick={event => handleDeleteClick(event, product.id, product.imageUrl)}
                     disabled={isDeleting || !product.isActive}
                     className={`flex items-center gap-3 px-3 py-2 text-sm ${
                       product.isActive ? 'text-red-600 hover:bg-red-50' : 'text-gray-400 cursor-not-allowed'
@@ -223,7 +223,7 @@ const ProductCardAdmin: React.FC<ProductCardAdminProps> = ({ product }) => {
       </div>
 
       <AddProductModal
-        isOpen={searchParams.get('editProduct') === product.sk}
+        isOpen={searchParams.get('editProduct') === product.id}
         onOpenChange={open => {
           if (!open) {
             const params = new URLSearchParams(searchParams.toString())

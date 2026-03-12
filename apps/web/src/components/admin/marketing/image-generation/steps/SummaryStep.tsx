@@ -63,7 +63,7 @@ export const SummaryStep = ({
           <h3 className='text-sm font-medium text-gray-700'>Productos seleccionados ({selectedProducts.length})</h3>
           <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
             {selectedProducts.map(product => (
-              <Card key={product.sk} className='p-3 border border-default-200' radius='sm' shadow='sm'>
+              <Card key={product.id} className='p-3 border border-default-200' radius='sm' shadow='sm'>
                 <div className='flex gap-3'>
                   <div className='w-16 h-16 shrink-0'>
                     <Image

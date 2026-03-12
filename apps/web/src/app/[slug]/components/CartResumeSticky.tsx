@@ -44,7 +44,7 @@ export default function CartResumeSticky() {
   }, [isOpen, onClose])
 
   useEffect(() => {
-    const filteredProducts = products?.filter(product => product.pk === commerceData?.pk)
+    const filteredProducts = products?.filter(product => product.organizationId === commerceData?.organizationId)
 
     const total = filteredProducts?.reduce((acc, product) => {
       let productTotal = product.price * product.quantity

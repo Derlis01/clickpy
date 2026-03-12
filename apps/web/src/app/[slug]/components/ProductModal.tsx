@@ -134,6 +134,7 @@ export default function ProductModal({ product, onClose, isOpen, editMode = fals
 
     const productToAdd = {
       ...product,
+      organizationId: commerceData?.organizationId || '',
       quantity,
       unicCartId: editMode && unicCartId ? unicCartId : Date.now(),
       total: calculateCurrentPrice()

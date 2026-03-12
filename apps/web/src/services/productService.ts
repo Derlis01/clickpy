@@ -10,7 +10,7 @@ type ProductResponse = {
 // Maps backend DB record → AdminProduct (used by store/components)
 function toAdminProduct(p: any): AdminProduct {
   return {
-    sk: p.id,
+    id: p.id,
     imageUrl: p.cover_image ?? '',
     productName: p.name,
     price: p.price,
@@ -77,7 +77,7 @@ const duplicateProduct = async (product: AdminProduct): Promise<AdminProduct | u
 
 const updateProduct = async (product: AdminProduct): Promise<AdminProduct | undefined> => {
   try {
-    const body = { id: product.sk, ...toApiProduct(product) }
+    const body = { id: product.id, ...toApiProduct(product) }
     const response = await instance.put('/product', body)
     return toAdminProduct(response.data.product)
   } catch (error) {
@@ -85,9 +85,9 @@ const updateProduct = async (product: AdminProduct): Promise<AdminProduct | unde
   }
 }
 
-const deleteProduct = async (sk: string): Promise<void> => {
+const deleteProduct = async (id: string): Promise<void> => {
   try {
-    await instance.delete(`/product/${sk}`)
+    await instance.delete(`/product/${id}`)
   } catch (error) {
     console.log(error)
   }

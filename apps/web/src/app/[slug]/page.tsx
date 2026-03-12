@@ -5,11 +5,55 @@ import type { Metadata, ResolvingMetadata } from 'next'
 import { cache } from 'react'
 
 const fetchCommerceData = cache(async (slug: string) => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/public/commerce/get-commerce-info/${slug}`, {
-    cache: 'no-store'
-  })
-  const data = await response.json()
-  return data
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  const [orgRes, branchesRes] = await Promise.all([
+    fetch(`${base}/public/org/${slug}`, { cache: 'no-store' }),
+    fetch(`${base}/public/org/${slug}/branches`, { cache: 'no-store' }),
+  ])
+
+  if (!orgRes.ok) return null
+
+  const orgData = await orgRes.json()
+  const branchesData = branchesRes.ok ? await branchesRes.json() : { branches: [] }
+
+  const org = orgData.organization
+  const branches: any[] = branchesData.branches ?? []
+  const main = branches.find((b: any) => b.is_main) ?? branches[0]
+
+  const pm = main?.payment_methods ?? {}
+  const sm = main?.shipping_methods ?? {}
+
+  const commerceInfo = {
+    id: org.id,
+    organizationId: org.id,
+    commerceName: org.name ?? '',
+    commerceLogo: org.logo ?? '',
+    commerceBanner: org.banner ?? '',
+    commercePhone: org.phone ?? '',
+    commerceSlug: org.slug ?? '',
+    commercePrimaryColor: org.primary_color ?? '',
+    commerceCategory: org.category ?? '',
+    commerceAddress: main?.address ?? '',
+    commerceInstagram: org.instagram ?? '',
+    commerceFacebook: org.facebook ?? '',
+    commerceTiktok: org.tiktok ?? '',
+    commerceSchedule: main?.schedule ?? [],
+    askPaymentMethod: main?.ask_payment_method ?? false,
+    paymentMethods: {
+      cash: pm.cash?.enabled ?? false,
+      qr: pm.qr?.enabled ?? false,
+      transfer: pm.transfer?.enabled ?? false,
+      paymentLink: pm.paymentLink?.enabled ?? false,
+    },
+    shippingMethods: {
+      pickup: sm.pickup?.enabled ?? false,
+      delivery: sm.delivery?.enabled ?? false,
+      dinein: sm.dinein?.enabled ?? false,
+    },
+  }
+
+  return { commerceInfo }
 })
 
 type Props = {
