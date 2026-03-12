@@ -12,7 +12,7 @@ export default function HeaderAndLogo({ commerceData }: HeaderAndLogoProps) {
     <div className='relative'>
       <div className='w-full'>
         <Image
-          src={commerceData.commerceBanner}
+          src={commerceData?.commerceBanner}
           alt='Commerce Banner'
           width='100%'
           radius='none'
@@ -25,7 +25,7 @@ export default function HeaderAndLogo({ commerceData }: HeaderAndLogoProps) {
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='max-w-2xl relative'>
           <Image
-            src={commerceData.commerceLogo}
+            src={commerceData?.commerceLogo}
             alt='Commerce Logo'
             radius='md'
             classNames={{
