@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 @Injectable()
 export class UploadService {
+  private readonly logger = new Logger(UploadService.name);
   private s3: S3Client;
   private bucketName: string;
   private publicBucketUrl: string;
@@ -44,7 +45,10 @@ export class UploadService {
       const encodedObjectKey = encodeURIComponent(objectKey);
       return `${this.publicBucketUrl}/${encodedObjectKey}`;
     } catch (error) {
-      console.error(`Error uploading image: ${error}`);
+      this.logger.error(
+        `Failed to upload image: ${objectKey}`,
+        error instanceof Error ? error.stack : String(error),
+      );
       return '';
     }
   }

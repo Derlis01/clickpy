@@ -3,3 +3,4 @@ export type { ProductOption, OptionValue, ProductAddon, ProductCategory, Product
 export type { OrderItem, DeliveryAddress, Order } from './order.js'
 export type { Customer } from './customer.js'
 export type { ApiResponse } from './api.js'
+export type { Table, TableSession, TableGuest, TableOrderItem, SessionStatus, PaymentStatus } from './table.js'
