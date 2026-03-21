@@ -8,6 +8,9 @@ export interface AdminProduct {
   price: number
   description: string
   category: string
+  categoryId: string
+  categorySortOrder: number
+  sortOrder: number
   options?: ProductOption[]
   addons?: ProductAddon[]
   hasAddonLimits: boolean

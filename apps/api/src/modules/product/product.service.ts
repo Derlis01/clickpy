@@ -9,6 +9,8 @@ import { UploadService } from '../upload/upload.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateVisibilityDto } from './dto/update-visibility.dto';
+import { ReorderProductsDto } from './dto/reorder-products.dto';
+import { ReorderCategoriesDto } from './dto/reorder-categories.dto';
 import { PlanName, PLANS_LIMITATIONS } from '../../common/config/plans.config';
 
 @Injectable()
@@ -182,6 +184,22 @@ export class ProductService {
     );
     const action = dto.is_hidden ? 'hidden' : 'shown';
     return { success: true, message: `Products ${action} successfully` };
+  }
+
+  async reorderProducts(branchId: string, dto: ReorderProductsDto) {
+    if (!dto.items || dto.items.length === 0) {
+      throw new BadRequestException('Items are required');
+    }
+    await this.productRepository.reorderProducts(branchId, dto.items);
+    return { success: true, message: 'Products reordered' };
+  }
+
+  async reorderCategories(branchId: string, dto: ReorderCategoriesDto) {
+    if (!dto.items || dto.items.length === 0) {
+      throw new BadRequestException('Items are required');
+    }
+    await this.productRepository.reorderCategories(branchId, dto.items);
+    return { success: true, message: 'Categories reordered' };
   }
 
   async getActiveProductsByOrgSlug(orgSlug: string) {

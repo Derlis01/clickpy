@@ -1,15 +1,13 @@
 'use client'
 
-import { Plus, AlertTriangle } from 'react-feather'
+import { Plus } from 'react-feather'
 import AddProductModal from './modals/AddProductModal'
-import { Button, Divider, useDisclosure } from '@heroui/react'
-import { useProductLimit } from '@/utils/planLimitations'
+import { Button, Divider } from '@heroui/react'
 import { useSearchParams, useRouter } from 'next/navigation'
 
 export default function AddProductButton() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { isLimitReached } = useProductLimit()
 
   const handleOpenModal = () => {
     const params = new URLSearchParams(searchParams.toString())
@@ -19,26 +17,10 @@ export default function AddProductButton() {
 
   return (
     <>
-      {isLimitReached && (
-        <div className='flex flex-col items-center justify-center bg-yellow-100 text-yellow-800 p-4 mb-4 mx-[-12px]'>
-          <div className='flex items-center'>
-            <AlertTriangle className='mr-2' size={24} />
-            <p className='text-pretty'>Llegaste al límite de productos de tu plan</p>
-          </div>
-          <a
-            href='https://wa.me/595972885139'
-            target='_blank'
-            rel='noopener noreferrer'
-            className='mt-2 text-warning-600 underline'
-          >
-            Actualizar Plan
-          </a>
-        </div>
-      )}
       <div className='flex md:justify-end items-center mb-8'>
         <div
-          className={`flex items-center gap-4 px-2 mt-4 md:hidden ${isLimitReached ? 'pointer-events-none opacity-50' : ''}`}
-          onClick={!isLimitReached ? handleOpenModal : undefined}
+          className='flex items-center gap-4 px-2 mt-4 md:hidden'
+          onClick={handleOpenModal}
         >
           <div className='bg-gray-200 p-5 rounded-lg'>
             <Plus color='#979797' size={30} />
@@ -49,10 +31,10 @@ export default function AddProductButton() {
         </div>
 
         <Button
-          className={`hidden md:flex shadow-sm ${isLimitReached ? 'pointer-events-none opacity-50' : ''}`}
+          className='hidden md:flex shadow-sm'
           color='primary'
           startContent={<Plus size={20} />}
-          onClick={!isLimitReached ? handleOpenModal : undefined}
+          onClick={handleOpenModal}
         >
           Agregar producto
         </Button>

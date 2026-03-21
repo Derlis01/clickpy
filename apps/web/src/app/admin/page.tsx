@@ -3,11 +3,10 @@
 import CardAdminContainer from '@/components/admin/CardAdminContainer'
 import { Progress, Skeleton } from '@heroui/react'
 import CollaborativeOrderingWidget from '@/components/admin/CollaborativeOrderingWidget'
-import AIMarketingWidget from '@/components/admin/AIMarketingWidget'
-import IntelligentAnalysisWidget from '@/components/admin/IntelligentAnalysisWidget'
+// import AIMarketingWidget from '@/components/admin/AIMarketingWidget'
+// import IntelligentAnalysisWidget from '@/components/admin/IntelligentAnalysisWidget'
 import DeliveryPricingWidget from '@/components/admin/DeliveryPricingWidget'
 import UserTask from '@/app/admin/components/UserTask'
-import ActualPlan from './components/ActualPlan'
 import useCommerceStore from '@/store/commerceStore'
 import useProductStore from '@/store/productStore'
 import SocialMediaLink from '@/components/admin/marketing/SocialMediaLink'
@@ -100,19 +99,19 @@ export default function Home() {
           {/* Widgets - Solo mostrar si no es grido-enc */}
           {!isGridoEnc && (
             <>
-              {/* Widgets Row 1 */}
               <div className='transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg'>
                 <CollaborativeOrderingWidget />
               </div>
 
-              <div className='transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg'>
+              {/* TODO: Habilitar cuando salga de fase de testeo */}
+              {/* <div className='transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg'>
                 <AIMarketingWidget />
-              </div>
+              </div> */}
 
-              {/* Widgets Row 2 */}
-              <div className='transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg'>
+              {/* TODO: Habilitar cuando salga de fase de testeo */}
+              {/* <div className='transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg'>
                 <IntelligentAnalysisWidget />
-              </div>
+              </div> */}
 
               <div className='transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg'>
                 <DeliveryPricingWidget />
@@ -120,7 +119,7 @@ export default function Home() {
             </>
           )}
 
-          {/* Bottom Row - Siempre mostrar estos dos */}
+          {/* Link para redes - Siempre visible */}
           <div className='transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg'>
             <CardAdminContainer
               title='Link para redes'
@@ -128,10 +127,6 @@ export default function Home() {
             >
               <SocialMediaLink />
             </CardAdminContainer>
-          </div>
-
-          <div className='transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg'>
-            <ActualPlan />
           </div>
         </div>
       </div>

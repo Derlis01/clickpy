@@ -56,7 +56,7 @@ export class ProductRepository {
     const { data, error } = await this.supabase
       .from('products')
       .insert(productData)
-      .select()
+      .select('*, product_categories(id, name, sort_order)')
       .single();
 
     if (error) throw error;
@@ -68,7 +68,7 @@ export class ProductRepository {
       .from('products')
       .update(updateData)
       .eq('id', productId)
-      .select()
+      .select('*, product_categories(id, name, sort_order)')
       .single();
 
     if (error) throw error;
@@ -101,6 +101,40 @@ export class ProductRepository {
 
     if (error) throw error;
     return data;
+  }
+
+  async reorderProducts(
+    branchId: string,
+    items: { id: string; sort_order: number }[],
+  ) {
+    const promises = items.map(({ id, sort_order }) =>
+      this.supabase
+        .from('products')
+        .update({ sort_order })
+        .eq('id', id)
+        .eq('branch_id', branchId),
+    );
+
+    const results = await Promise.all(promises);
+    const failed = results.find((r) => r.error);
+    if (failed?.error) throw failed.error;
+  }
+
+  async reorderCategories(
+    branchId: string,
+    items: { id: string; sort_order: number }[],
+  ) {
+    const promises = items.map(({ id, sort_order }) =>
+      this.supabase
+        .from('product_categories')
+        .update({ sort_order })
+        .eq('id', id)
+        .eq('branch_id', branchId),
+    );
+
+    const results = await Promise.all(promises);
+    const failed = results.find((r) => r.error);
+    if (failed?.error) throw failed.error;
   }
 
   async getActiveProductsByOrgSlug(orgSlug: string) {

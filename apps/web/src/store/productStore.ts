@@ -39,6 +39,10 @@ interface ProductStoreModel {
   // Acciones para categorías
   updateCategoryName: (productIds: string[], newCategoryName: string) => Promise<boolean>
 
+  // Acciones para reordenamiento
+  reorderProducts: (items: { id: string; sort_order: number }[]) => Promise<boolean>
+  reorderCategories: (items: { id: string; sort_order: number }[]) => Promise<boolean>
+
   // Otras acciones
   fetchProducts: () => Promise<void>
   calculateCategories: (products: AdminProduct[]) => void
@@ -284,6 +288,44 @@ const useProductStore = create<ProductStoreModel>()(
           return true
         }
         return false
+      },
+
+      reorderProducts: async (items: { id: string; sort_order: number }[]) => {
+        // Optimistic update
+        const previousProducts = get().products
+        set(state => ({
+          products: state.products.map(product => {
+            const item = items.find(i => i.id === product.id)
+            return item ? { ...product, sortOrder: item.sort_order } : product
+          })
+        }))
+
+        const response = await productService.reorderProducts(items)
+        if (!response.success) {
+          // Rollback
+          set({ products: previousProducts })
+          return false
+        }
+        return true
+      },
+
+      reorderCategories: async (items: { id: string; sort_order: number }[]) => {
+        // Optimistic update
+        const previousProducts = get().products
+        set(state => ({
+          products: state.products.map(product => {
+            const item = items.find(i => i.id === product.categoryId)
+            return item ? { ...product, categorySortOrder: item.sort_order } : product
+          })
+        }))
+
+        const response = await productService.reorderCategories(items)
+        if (!response.success) {
+          // Rollback
+          set({ products: previousProducts })
+          return false
+        }
+        return true
       },
 
       calculateCategories: (products: AdminProduct[]) => {

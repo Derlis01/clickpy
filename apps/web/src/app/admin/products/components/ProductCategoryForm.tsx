@@ -3,7 +3,7 @@
 import useProductStore from '@/store/productStore'
 import { AdminProduct } from '@/types/AdminProduct'
 import { Autocomplete, AutocompleteItem } from '@heroui/react'
-import { Key, useState, useEffect, useRef } from 'react'
+import { Key, useState, useEffect, useRef, useMemo } from 'react'
 
 interface Item {
   label: string
@@ -18,35 +18,53 @@ interface ProductImageFormProps {
 
 export default function ProductCategoryForm({ productForm, setProductForm, isFormValid }: ProductImageFormProps) {
   const allCategories = useProductStore(state => state.categories)
+  const products = useProductStore(state => state.products)
   const defaultItems = allCategories.map(category => ({ label: category, value: category }))
   const [inputValue, setInputValue] = useState(productForm.category !== '' ? productForm.category : '')
   const isUserTypingRef = useRef(false)
 
+  // Mapeo de nombre de categoría → categoryId
+  const categoryIdMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    products.forEach(p => {
+      if (p.category && p.categoryId) {
+        map[p.category] = p.categoryId
+      }
+    })
+    return map
+  }, [products])
+
   // Sincronizar inputValue con cambios externos en productForm.category
   useEffect(() => {
-    // Solo actualizar si no es el usuario quien está escribiendo
     if (!isUserTypingRef.current) {
       setInputValue(productForm.category)
     }
   }, [productForm.category])
 
   const handleSelectionChange = (key: Key | null) => {
-    isUserTypingRef.current = false // Reset flag cuando se selecciona
+    isUserTypingRef.current = false
     if (key !== null) {
       const item = defaultItems.find(item => item.value === key)
       if (item) {
         setInputValue(item.label)
-        setProductForm({ ...productForm, category: item.label })
+        setProductForm({
+          ...productForm,
+          category: item.label,
+          categoryId: categoryIdMap[item.label] || ''
+        })
       }
     }
   }
 
   const handleInputChange = (value: string) => {
-    isUserTypingRef.current = true // Set flag cuando el usuario escribe
+    isUserTypingRef.current = true
     setInputValue(value)
-    setProductForm({ ...productForm, category: value })
-    
-    // Reset flag después de un tiempo para permitir sincronización externa futura
+    setProductForm({
+      ...productForm,
+      category: value,
+      categoryId: categoryIdMap[value] || ''
+    })
+
     setTimeout(() => {
       isUserTypingRef.current = false
     }, 100)

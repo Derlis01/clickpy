@@ -14,6 +14,8 @@ import { AuthenticatedUser } from '../../common/types/authenticated-request';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateVisibilityDto } from './dto/update-visibility.dto';
+import { ReorderProductsDto } from './dto/reorder-products.dto';
+import { ReorderCategoriesDto } from './dto/reorder-categories.dto';
 
 @Controller()
 export class ProductController {
@@ -74,6 +76,22 @@ export class ProductController {
     @Body() dto: UpdateVisibilityDto,
   ) {
     return this.productService.updateProductsVisibility(user.branchId, dto);
+  }
+
+  @Put('product/reorder')
+  async reorderProducts(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: ReorderProductsDto,
+  ) {
+    return this.productService.reorderProducts(user.branchId, dto);
+  }
+
+  @Put('product-categories/reorder')
+  async reorderCategories(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: ReorderCategoriesDto,
+  ) {
+    return this.productService.reorderCategories(user.branchId, dto);
   }
 
   // ─── Public ───

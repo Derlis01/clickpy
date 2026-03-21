@@ -16,6 +16,9 @@ function toAdminProduct(p: any): AdminProduct {
     price: p.price,
     description: p.description ?? '',
     category: p.product_categories?.name ?? '',
+    categoryId: p.product_categories?.id ?? '',
+    categorySortOrder: p.product_categories?.sort_order ?? 0,
+    sortOrder: p.sort_order ?? 0,
     options: p.options ?? [],
     addons: p.addons ?? [],
     hasAddonLimits: p.has_addon_limits ?? false,
@@ -33,6 +36,7 @@ function toApiProduct(p: AdminProduct): Record<string, any> {
     price: p.price,
     cover_image: p.imageUrl ?? '',
     description: p.description ?? '',
+    category_id: p.categoryId || null,
     options: p.options ?? [],
     addons: p.addons ?? [],
     has_addon_limits: p.hasAddonLimits ?? false,
@@ -145,6 +149,30 @@ const updateCategoryName = async (
   return { success: false, message: 'Not implemented' }
 }
 
+const reorderProducts = async (
+  items: { id: string; sort_order: number }[]
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    const response = await instance.put('/product/reorder', { items })
+    return { success: true, message: response.data.message }
+  } catch (error: any) {
+    console.log(error)
+    return { success: false, message: error.response?.data?.message || 'Error al reordenar productos' }
+  }
+}
+
+const reorderCategories = async (
+  items: { id: string; sort_order: number }[]
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    const response = await instance.put('/product-categories/reorder', { items })
+    return { success: true, message: response.data.message }
+  } catch (error: any) {
+    console.log(error)
+    return { success: false, message: error.response?.data?.message || 'Error al reordenar categorías' }
+  }
+}
+
 const productService = {
   getProducts,
   getProduct,
@@ -156,6 +184,8 @@ const productService = {
   updateProductsHiddenStatus,
   updateCategoryName,
   getPublicProducts,
+  reorderProducts,
+  reorderCategories,
 }
 
 export default productService
