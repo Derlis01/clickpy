@@ -2,14 +2,13 @@
 
 import { Tabs, Tab } from "@heroui/react"
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, ShoppingBag, Tag, Briefcase } from 'react-feather'
+import { Home, ShoppingBag, Tag, Briefcase, Grid, Clipboard } from 'react-feather'
 
-// Definimos un array de objetos que representan cada pestaña.
-// Cada objeto tiene una key (la ruta a la que lleva la pestaña),
-// un icono y una etiqueta.
 const tabs = [
   { key: '/admin', icon: <Home />, label: 'Home' },
+  { key: '/admin/orders', icon: <Clipboard />, label: 'Pedidos' },
   { key: '/admin/products', icon: <ShoppingBag />, label: 'Productos' },
+  { key: '/admin/tables', icon: <Grid />, label: 'Mesas' },
   { key: '/admin/marketing', icon: <Tag />, label: 'Marketing' },
   { key: '/admin/local', icon: <Briefcase />, label: 'Local' }
 ]
@@ -41,7 +40,7 @@ const NavigationMobile = () => {
         classNames={{
           tabList: 'w-full relative rounded-none h-[70px] p-0 border-b border-divider justify-between px-2',
           cursor: `w-full bg-[#d7dafc]`,
-          tab: 'h-14 px-2 w-1/4',
+          tab: 'h-14 px-2 w-1/5',
           tabContent: 'group-data-[selected=true]:text-[#374bff]'
         }}
       >

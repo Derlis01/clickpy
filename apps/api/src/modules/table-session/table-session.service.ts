@@ -18,7 +18,7 @@ export class TableSessionService {
     if (!session) {
       session = await this.repo.createSession(tableId, table.branch_id);
     }
-    return session;
+    return { ...session, table_number: table.number, table_name: table.name };
   }
 
   /** Join a session (register guest) */

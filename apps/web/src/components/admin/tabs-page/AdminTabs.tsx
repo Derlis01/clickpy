@@ -7,6 +7,8 @@ import { useRouter, usePathname } from 'next/navigation'
 const tabTitles: Record<string, string[]> = {
   '/admin': ['General'],
   '/admin/products': ['Productos'],
+  '/admin/orders': ['General', 'Historial'],
+  '/admin/orders/history': ['General', 'Historial'],
   '/admin/marketing': ['Inicio', 'Analisis', 'ia'],
   '/admin/marketing/analisis': ['Inicio', 'Analisis', 'ia'],
   '/admin/marketing/ia': ['Inicio', 'Analisis', 'ia'],

@@ -3,7 +3,7 @@
 import { useWindowSize } from '@/hooks/useWindowSize'
 import NavigationMobile from './navigation-mobile/NavigationMobile'
 import AdminTabs from '@/components/admin/tabs-page/AdminTabs'
-import { Home, ShoppingBag, Tag, Briefcase } from 'react-feather'
+import { Home, ShoppingBag, Tag, Briefcase, Grid, Clipboard } from 'react-feather'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import HeaderAdminClient from './header/HeaderAdminClient'
@@ -14,7 +14,9 @@ interface DashboardLayoutProps {
 
 const navigationItems = [
   { name: 'Home', href: '/admin', icon: Home },
+  { name: 'Pedidos', href: '/admin/orders', icon: Clipboard },
   { name: 'Productos', href: '/admin/products', icon: ShoppingBag },
+  { name: 'Mesas', href: '/admin/tables', icon: Grid },
   { name: 'Marketing', href: '/admin/marketing', icon: Tag },
   { name: 'Local', href: '/admin/local', icon: Briefcase }
 ]

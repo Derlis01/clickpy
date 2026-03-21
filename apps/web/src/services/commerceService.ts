@@ -3,6 +3,8 @@ import instance from '@/utils/axios'
 // Cached main branch ID — set when getCommerce() is called, reused for updates
 let mainBranchId: string | null = null
 
+export const getMainBranchId = () => mainBranchId
+
 // Store field name → org column name
 const ORG_FIELD_MAP: Record<string, string> = {
   commerceName: 'name',

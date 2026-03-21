@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { OrderRepository } from './order.repository';
 import { CustomerRepository } from '../customer/customer.repository';
+import { RealtimeGateway } from '../realtime/realtime.gateway';
 import { CreateOrderDto } from './dto/create-order.dto';
 
 @Injectable()
@@ -8,6 +9,7 @@ export class OrderService {
   constructor(
     private readonly orderRepository: OrderRepository,
     private readonly customerRepository: CustomerRepository,
+    private readonly realtimeGateway: RealtimeGateway,
   ) {}
 
   async createOrder(dto: CreateOrderDto) {
@@ -60,6 +62,70 @@ export class OrderService {
     };
 
     const order = await this.orderRepository.createOrder(orderData);
+
+    // Broadcast new order to staff/kitchen
+    this.realtimeGateway.broadcastToKitchen(dto.branch_id, 'kitchen:new_order', {
+      order_id: order.id,
+      order_number: order.order_number,
+      customer_name: order.customer_name,
+      type: order.type,
+      status: order.status,
+      items: order.items,
+      total: order.total,
+      source: 'storefront',
+      created_at: order.created_at,
+    });
+
+    this.realtimeGateway.broadcastToFloor(dto.branch_id, 'floor:new_order', {
+      order_id: order.id,
+      order_number: order.order_number,
+      type: order.type,
+      status: order.status,
+      total: order.total,
+      created_at: order.created_at,
+    });
+
     return { success: true, message: 'Order created successfully', order };
+  }
+
+  async findByBranch(
+    branchId: string,
+    filters?: { status?: string; type?: string; from?: string; to?: string },
+  ) {
+    return this.orderRepository.findByBranch(branchId, filters);
+  }
+
+  async findById(orderId: string) {
+    return this.orderRepository.findById(orderId);
+  }
+
+  async updateStatus(
+    orderId: string,
+    branchId: string,
+    status: string,
+    cancellationReason?: string,
+  ) {
+    const order = await this.orderRepository.updateStatus(
+      orderId,
+      status,
+      cancellationReason,
+    );
+
+    // Broadcast status change to staff/kitchen
+    this.realtimeGateway.broadcastToKitchen(branchId, 'order:status_updated', {
+      order_id: order.id,
+      order_number: order.order_number,
+      status: order.status,
+      updated_at: order.updated_at,
+    });
+
+    this.realtimeGateway.broadcastToFloor(branchId, 'floor:order_updated', {
+      order_id: order.id,
+      order_number: order.order_number,
+      status: order.status,
+      updated_at: order.updated_at,
+    });
+
+    return order;
   }
 }

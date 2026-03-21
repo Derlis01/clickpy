@@ -35,4 +35,72 @@ export class OrderRepository {
     if (error) throw error;
     return data;
   }
+
+  async findByBranch(
+    branchId: string,
+    filters?: {
+      status?: string;
+      type?: string;
+      from?: string;
+      to?: string;
+    },
+  ) {
+    let query = this.supabase
+      .from('orders')
+      .select('*')
+      .eq('branch_id', branchId)
+      .order('created_at', { ascending: false });
+
+    if (filters?.status) {
+      query = query.eq('status', filters.status);
+    }
+    if (filters?.type) {
+      query = query.eq('type', filters.type);
+    }
+    if (filters?.from) {
+      query = query.gte('created_at', filters.from);
+    }
+    if (filters?.to) {
+      query = query.lte('created_at', filters.to);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data ?? [];
+  }
+
+  async findById(orderId: string) {
+    const { data, error } = await this.supabase
+      .from('orders')
+      .select('*')
+      .eq('id', orderId)
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async updateStatus(
+    orderId: string,
+    status: string,
+    cancellationReason?: string,
+  ) {
+    const updateData: Record<string, any> = {
+      status,
+      updated_at: new Date().toISOString(),
+    };
+    if (cancellationReason) {
+      updateData.cancellation_reason = cancellationReason;
+    }
+
+    const { data, error } = await this.supabase
+      .from('orders')
+      .update(updateData)
+      .eq('id', orderId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
 }

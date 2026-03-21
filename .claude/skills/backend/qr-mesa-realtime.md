@@ -27,10 +27,12 @@ Directorio: `src/modules/realtime/`
 2. Kitchen y Staff: join a room y return
 3. Guest:
    - Busca/crea sesion en memoria (SessionStateManager)
-   - Registra guest en DB (best-effort, no bloquea si falla)
+   - Si la sesion esta cerrada → desconecta con `SESSION_CLOSED`
+   - Si el guest ya existia (reconexion) → **desconecta el socket viejo** antes de registrar el nuevo, para evitar sockets duplicados en la misma room
+   - Si es guest nuevo → registra en DB (best-effort) y agrega a memoria
    - Join a room `table:{sessionId}`
    - Emite `guest:presence` al guest que se conecta
-   - Emite `guest:joined` a los demas de la mesa
+   - Emite `guest:joined` a los demas de la mesa (solo si es guest nuevo)
 
 ### Carrito (`cart:update`)
 
@@ -132,3 +134,7 @@ Implementa la clase abstracta `RealtimeBroadcaster` (definida en table-session).
 this.realtimeBroadcaster.toTable(sid, 'bill:requested', data);
 this.realtimeBroadcaster.toFloor(branchId, 'floor:item_ready', data);
 ```
+
+## Ultima actualizacion
+
+2026-03-21 — Fix reconexion de guests: al reconectar un guest con token existente, se desconecta el socket viejo (`oldSocket.leave()` + `oldSocket.disconnect(true)`) antes de actualizar `socketId`. Evita sockets duplicados en la room `table:{sessionId}`.

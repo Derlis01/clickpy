@@ -102,7 +102,15 @@ export class RealtimeGateway
     // Register or reconnect guest
     const existingGuest = session.guests.get(token);
     if (existingGuest) {
-      // Reconnection — update socket ID
+      // Reconnection — disconnect old socket, then update
+      if (existingGuest.socketId && existingGuest.socketId !== socket.id) {
+        const oldSocket = this.server.sockets.sockets.get(existingGuest.socketId);
+        if (oldSocket) {
+          oldSocket.leave(`table:${sessionId}`);
+          oldSocket.disconnect(true);
+          this.logger.log(`Evicted stale socket: ${existingGuest.socketId} for ${displayName}`);
+        }
+      }
       existingGuest.socketId = socket.id;
       this.logger.log(`Guest reconnected: ${displayName} (${socket.id})`);
     } else {

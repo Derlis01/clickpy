@@ -1,13 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getCommerceInsights, generateInsights, pollJobStatus } from '@/services/commerceService'
 import { InsightStatusBadge } from '@/components/InsightStatusBadge'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CommerceInsightsResponse } from '@/types/commerceModel'
 import { ChevronDown, Zap } from 'react-feather'
 import { Card, CardBody, Tabs, Tab, Button, Skeleton } from '@heroui/react'
 import { InsightSkeletonGrid } from '@/components/skeletons/InsightCardSkeleton'
+
+// TODO: re-enable when commerce insights API is ready
+const getCommerceInsights = async (): Promise<CommerceInsightsResponse[]> => []
 export default function CommerceInsight() {
   const [selectedKey, setSelectedKey] = useState('all')
   const [insights, setInsights] = useState<CommerceInsightsResponse[]>([])

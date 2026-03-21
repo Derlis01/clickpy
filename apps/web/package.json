@@ -8,6 +8,8 @@
     "start": "next start"
   },
   "dependencies": {
+    "@clickpy/shared": "workspace:*",
+    "@hello-pangea/dnd": "^18.0.1",
     "@heroui/react": "2.8.10",
     "@hookform/resolvers": "^3.9.0",
     "@supabase/ssr": "^0.9.0",
@@ -28,13 +30,13 @@
     "react-image-crop": "^11.0.5",
     "react-leaflet": "^4.2.1",
     "react-phone-input-2": "^2.15.1",
+    "socket.io-client": "^4.8.3",
     "sonner": "^1.4.41",
     "swr": "^2.2.5",
     "tinycolor2": "^1.6.0",
     "use-debounce": "^10.0.4",
     "zod": "^3.23.8",
-    "zustand": "^4.5.2",
-    "@clickpy/shared": "workspace:*"
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",
